@@ -52,6 +52,23 @@ services:
       - matify-internal
     volumes:
       - redis_data:/data
+  worker:
+    build:
+      context: ./services/worker
+      dockerfile: Dockerfile
+    container_name: matify_worker
+    environment:
+      - REDIS_HOST=redis
+      - S3_ENDPOINT=minio
+      - S3_PORT=9000
+    volumes:
+      - ./services/worker:/app
+      - /app/node_modules
+    networks:
+      - matify-internal
+    depends_on:
+      - redis
+      - minio
 volumes:
   postgres_data:
   minio_data:
