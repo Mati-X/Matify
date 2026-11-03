@@ -22,6 +22,24 @@ services:
       - "${MINIO_CONSOLE_PORT}:9001"
     volumes:
       - minio_data:/data
+  api:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile
+    container_name: matify_api
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - S3_ENDPOINT=minio
+      - S3_PORT=9000
+    volumes:
+      - ./services/api:/app
+      - /app/node_modules
+    depends_on:
+      - postgres
+      - minio
 volumes:
   postgres_data:
   minio_data:
