@@ -3,8 +3,9 @@ import pg, {QueryResult} from "pg";
 import fastifyMultipart, {Multipart, MultipartFile} from "@fastify/multipart";
 import {S3Client, PutObjectCommand} from "@aws-sdk/client-s3";
 import Redis from "ioredis";
+import { db, pool } from './db/index';
+import { tracks } from './db/schema'
 
-const { Pool } = pg;
 
 const app = Fastify({ logger: true });
 
@@ -26,15 +27,12 @@ const redis =  new Redis({
 
 const PORT = Number(process.env.PORT) || 3000;
 
-const db = new Pool({
-    connectionString: process.env.DATABASE_URL,
-});
 app.get("/health", async () => {
     return { status: "ok", app: "Matify API" };
 });
 
 app.get("/db-test", async () => {
-    const result: QueryResult<any> = await db.query("SELECT NOW() as current_time, version()");
+    const result: QueryResult<any> = await pool.query("SELECT NOW() as current_time, version()");
     return {
         status: "connected",
         db_time: result.rows[0].current_time,
@@ -73,6 +71,11 @@ app.post("/track/upload", async (req, res) => {
         job: jobPayload,
     });
 })
+
+app.get("/tracks", async () => {
+    const allTracks = await db.select().from(tracks);
+    return { tracks: allTracks };
+});
 
 const start = async () => {
     try {
