@@ -4,7 +4,7 @@ import fastifyMultipart, {Multipart, MultipartFile} from "@fastify/multipart";
 import {S3Client, PutObjectCommand, DeleteObjectCommand} from "@aws-sdk/client-s3";
 import Redis from "ioredis";
 import { db, pool } from './db/index';
-import { tracks } from './db/schema'
+import {playlists, tracks} from './db/schema'
 import {and, eq, ilike, or} from "drizzle-orm";
 
 
@@ -135,6 +135,22 @@ app.delete("/tracks/:id", async (req, res) => {
     return res.status(200).send({message: "Track deleted successfully", id: params.id});
 });
 
+app.post("/playlists", async (req, res) => {
+     const { title, description } = req.body as { title: string; description?: string };
+     if (!title) {
+         return res.status(400).send({ error: "No title provided" });
+     }
+    const [newPlaylist] = await db
+        .insert(playlists)
+        .values({ title, description })
+        .returning();
+    await res.status(201).send({playlist: newPlaylist})
+});
+
+app.get("/playlists", async (req, res) => {
+    const allPlaylists = await db.select().from(playlists);
+    return { playlists: allPlaylists };
+})
 
 const start = async () => {
     try {
