@@ -12,3 +12,7 @@ yarn-error.log*
 
 .idea/
 .env
+
+*.mp3
+*.flac
+*.wav

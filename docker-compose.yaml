@@ -61,8 +61,9 @@ services:
     container_name: matify_worker
     environment:
       - REDIS_HOST=redis
-      - S3_ENDPOINT=minio
-      - S3_PORT=9000
+      - S3_ENDPOINT=http://minio:9000
+      - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
     volumes:
       - ./services/worker:/app
       - /app/node_modules
