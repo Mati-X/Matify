@@ -5,7 +5,7 @@ import {S3Client, PutObjectCommand, DeleteObjectCommand} from "@aws-sdk/client-s
 import Redis from "ioredis";
 import { db, pool } from './db/index';
 import { tracks } from './db/schema'
-import {eq} from "drizzle-orm";
+import {and, eq, ilike, or} from "drizzle-orm";
 
 
 const app = Fastify({ logger: true });
@@ -73,8 +73,30 @@ app.post("/track/upload", async (req, res) => {
     });
 })
 
-app.get("/tracks", async () => {
-    const allTracks = await db.select().from(tracks);
+app.get("/tracks", async (req) => {
+    const { search, artist } = req.query as { search?: string; artist?: string };
+
+    const conditions = [];
+
+    if (search) {
+        conditions.push(
+            or(
+                ilike(tracks.title, `%${search}%`),
+                ilike(tracks.artist, `%${search}%`),
+                ilike(tracks.album, `%${search}%`)
+            )
+        );
+    }
+
+    if (artist) {
+        conditions.push(ilike(tracks.artist, `%${artist}%`));
+    }
+
+    const query = db.select().from(tracks);
+    const allTracks = conditions.length > 0
+        ? await query.where(and(...conditions))
+        : await query;
+
     return { tracks: allTracks };
 });
 
@@ -112,6 +134,7 @@ app.delete("/tracks/:id", async (req, res) => {
     await db.delete(tracks).where(eq(tracks.id, params.id));
     return res.status(200).send({message: "Track deleted successfully", id: params.id});
 });
+
 
 const start = async () => {
     try {
