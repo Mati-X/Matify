@@ -4,7 +4,7 @@ import fastifyMultipart, {Multipart, MultipartFile} from "@fastify/multipart";
 import {S3Client, PutObjectCommand, DeleteObjectCommand} from "@aws-sdk/client-s3";
 import Redis from "ioredis";
 import { db, pool } from './db/index';
-import {playlists, tracks} from './db/schema'
+import {playlistEntries, playlists, tracks} from './db/schema'
 import {and, eq, ilike, or} from "drizzle-orm";
 
 
@@ -150,6 +150,31 @@ app.post("/playlists", async (req, res) => {
 app.get("/playlists", async (req, res) => {
     const allPlaylists = await db.select().from(playlists);
     return { playlists: allPlaylists };
+});
+
+app.post("/playlists/:id/tracks", async (req, res) => {
+    const playlistId  = req.params?.id;
+    const { trackId, position, entryType, sequenceGroupId, atomic } = req.body as {
+        trackId: string;
+        position: number;
+        entryType?: string;
+        sequenceGroupId?: string;
+        atomic?: boolean;
+    };
+
+    const [entry] = await db
+        .insert(playlistEntries)
+        .values({
+            playlistId,
+            trackId,
+            position,
+            entryType: entryType || "single",
+            sequenceGroupId: sequenceGroupId || null,
+            atomic: atomic ?? false,
+        })
+        .returning();
+
+    await res.status(201).send({entry})
 })
 
 const start = async () => {
