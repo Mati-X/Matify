@@ -175,7 +175,31 @@ app.post("/playlists/:id/tracks", async (req, res) => {
         .returning();
 
     await res.status(201).send({entry})
-})
+});
+
+app.get( "/playlists/:id", async (req, res) => {
+    const { id } = req.params as { id: string };
+    const [playlist] = await db.select().from(playlists).where(eq(playlists.id, id));
+    if (!playlist) {
+        return res.status(404).send({ error: "Playlist not found" });
+    }
+
+    const entries = await db
+        .select({
+            entryId: playlistEntries.id,
+            position: playlistEntries.position,
+            entryType: playlistEntries.entryType,
+            sequenceGroupId: playlistEntries.sequenceGroupId,
+            atomic: playlistEntries.atomic,
+            track: tracks,
+        })
+        .from(playlistEntries)
+        .innerJoin(tracks, eq(playlistEntries.trackId, tracks.id))
+        .where(eq(playlistEntries.playlistId, id))
+        .orderBy(playlistEntries.position);
+
+    return { playlist, tracks: entries };
+});
 
 const start = async () => {
     try {
