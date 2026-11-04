@@ -5,6 +5,7 @@ import {S3Client, PutObjectCommand} from "@aws-sdk/client-s3";
 import Redis from "ioredis";
 import { db, pool } from './db/index';
 import { tracks } from './db/schema'
+import {eq} from "drizzle-orm";
 
 
 const app = Fastify({ logger: true });
@@ -75,6 +76,18 @@ app.post("/track/upload", async (req, res) => {
 app.get("/tracks", async () => {
     const allTracks = await db.select().from(tracks);
     return { tracks: allTracks };
+});
+
+app.get("/tracks/:id", async (req, res) => {
+    const params = req.params;
+     if  (!params.id) {
+         return res.status(400).send({ error : "No id provided"});
+     }
+    const track = await db.select().from(tracks).where(eq(tracks.id, params.id));
+    if (track.length === 0) {
+        return res.status(404).send({ error: "Track not found" });
+    }
+    return res.status(200).send({ track: track[0] });
 });
 
 const start = async () => {
