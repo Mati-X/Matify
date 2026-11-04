@@ -24,6 +24,8 @@ services:
       - "${MINIO_CONSOLE_PORT}:9001"
     volumes:
       - minio_data:/data
+    networks:
+      - matify-internal
   api:
     build:
       context: ./services/api
@@ -31,13 +33,13 @@ services:
     container_name: matify_api
     networks:
       - matify-internal
-    ports:
-      - "3000:3000"
     environment:
       - PORT=3000
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      - S3_ENDPOINT=minio
-      - S3_PORT=9000
+      - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
+      - S3_ENDPOINT=http://minio:9000
+      - REDIS_HOST=redis
     volumes:
       - ./services/api:/app
       - /app/node_modules
@@ -68,6 +70,19 @@ services:
       - matify-internal
     depends_on:
       - redis
+      - minio
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: matify_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - matify-internal
+    depends_on:
+      - api
       - minio
 volumes:
   postgres_data:
