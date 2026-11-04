@@ -201,6 +201,53 @@ app.get( "/playlists/:id", async (req, res) => {
     return { playlist, tracks: entries };
 });
 
+app.get("/playlists/:id/shuffle", async (req, res) => {
+    const { id } = req.params as { id: string };
+
+    const entries = await db
+        .select({
+            entryId: playlistEntries.id,
+            position: playlistEntries.position,
+            entryType: playlistEntries.entryType,
+            sequenceGroupId: playlistEntries.sequenceGroupId,
+            atomic: playlistEntries.atomic,
+            track: tracks,
+        })
+        .from(playlistEntries)
+        .innerJoin(tracks, eq(playlistEntries.trackId, tracks.id))
+        .where(eq(playlistEntries.playlistId, id))
+        .orderBy(playlistEntries.position);
+
+    if (entries.length === 0) {
+        return { queue: [] };
+    }
+
+    const clusters: (typeof entries)[] = [];
+    const groupMap = new Map<string, typeof entries>();
+
+    for (const item of entries) {
+        if (item.sequenceGroupId && item.atomic) {
+            if (!groupMap.has(item.sequenceGroupId)) {
+                const newGroup: typeof entries = [];
+                groupMap.set(item.sequenceGroupId, newGroup);
+                clusters.push(newGroup);
+            }
+            groupMap.get(item.sequenceGroupId)!.push(item);
+        } else {
+            clusters.push([item]);
+        }
+    }
+
+    for (let i = clusters.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [clusters[i], clusters[j]] = [clusters[j], clusters[i]];
+    }
+
+    const shuffledQueue = clusters.flat();
+
+    return { queue: shuffledQueue };
+});
+
 const start = async () => {
     try {
         await app.listen({port: PORT, host: "0.0.0.0"});
