@@ -1,6 +1,6 @@
 import { execSync } from "node:child_process";
 import Redis from "ioredis";
-import {GetObjectCommand, S3Client} from "@aws-sdk/client-s3";
+import {GetObjectCommand, PutObjectCommand, S3Client} from "@aws-sdk/client-s3";
 import fs from "node:fs/promises";
 
 const s3client = new S3Client({
@@ -56,6 +56,28 @@ async function startWorker() {
             `ffmpeg -i ${inputPath} -c:a aac -b:a 192k -hls_time 4 -hls_playlist_type vod -hls_segment_filename "${outputDir}/segment_%03d.ts" ${outputDir}/playlist.m3u8`
         );
         console.log(`[Worker] Transkodowanie ukończone! Pocięto na segmenty w ${outputDir}`);
+        const files = await fs.readdir(outputDir);
+        for (const file of files) {
+            const fileBuffer = await fs.readFile(`${outputDir}/${file}`);
+
+            const contentType = file.endsWith(".m3u8")
+                ? "application/vnd.apple.mpegurl"
+                : "video/mp2t";
+
+            await s3client.send(
+                new PutObjectCommand({
+                    Bucket: "tracks",
+                    Key: `hls/${job.s3Key}/${file}`,
+                    Body: fileBuffer,
+                    ContentType: contentType,
+                })
+            );
+
+
+        }
+
+        await fs.rm(inputPath);
+        await fs.rm(outputDir, { recursive: true, force: true });
     }
 }
 
