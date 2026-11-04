@@ -1,7 +1,7 @@
 import Fastify from "fastify";
 import pg, {QueryResult} from "pg";
 import fastifyMultipart, {Multipart, MultipartFile} from "@fastify/multipart";
-import {S3Client, PutObjectCommand} from "@aws-sdk/client-s3";
+import {S3Client, PutObjectCommand, DeleteObjectCommand} from "@aws-sdk/client-s3";
 import Redis from "ioredis";
 import { db, pool } from './db/index';
 import { tracks } from './db/schema'
@@ -90,9 +90,32 @@ app.get("/tracks/:id", async (req, res) => {
     return res.status(200).send({ track: track[0] });
 });
 
+app.delete("/tracks/:id", async (req, res) => {
+    const params = req.params;
+    if (!params.id) {
+        return res.status(400).send({error: "No id provided"});
+    }
+    const [track] = await db.select().from(tracks).where(eq(tracks.id, params.id));
+    if (!track) {
+        return res.status(404).send({error: "Track not found"});
+    }
+
+    if (track.rawS3Key) {
+        await s3client.send(
+            new DeleteObjectCommand({
+                Bucket: "tracks",
+                Key: track.rawS3Key,
+            })
+        );
+    }
+
+    await db.delete(tracks).where(eq(tracks.id, params.id));
+    return res.status(200).send({message: "Track deleted successfully", id: params.id});
+});
+
 const start = async () => {
     try {
-        await app.listen({ port: PORT, host: "0.0.0.0" });
+        await app.listen({port: PORT, host: "0.0.0.0"});
     } catch (err) {
         app.log.error(err);
         process.exit(1);
