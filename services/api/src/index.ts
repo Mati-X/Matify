@@ -6,6 +6,7 @@ import Redis from "ioredis";
 import { db, pool } from './db/index';
 import {playlistEntries, playlists, tracks} from './db/schema'
 import {and, eq, ilike, or} from "drizzle-orm";
+import {LyricLine, parseLrc} from "./utils/lyricsParser";
 
 
 const app = Fastify({ logger: true });
@@ -265,7 +266,45 @@ app.get("/tracks/:id/lyrics", async (req, res) => {
         return res.status(404).send({ error: "Track not found" });
     }
 
-    return { lyrics: track };
+    let parsed: LyricLine[] = [];
+    if (track.syncedLyrics)
+        parsed = parseLrc(track.syncedLyrics);
+
+    return { lyrics: track,
+             parsed: parsed};
+});
+
+app.put('/tracks/:id/lyrics', async  (req, res) => {
+    const { id } = req.params as { id: string };
+    if (!id)
+        return res.status(400).send({error: "Invalid track id"});
+
+    const {syncedLyrics, plainLyrics} = req.body as {
+        syncedLyrics?: string;
+        plainLyrics?: string;
+    };
+    if (syncedLyrics === undefined && plainLyrics === undefined) {
+        return res.status(400).send({ error: "Provide syncedLyrics or plainLyrics" });
+    }
+
+    const [updatedTrack] = await db
+        .update(tracks)
+        .set({
+            ...(syncedLyrics !== undefined && {syncedLyrics}),
+            ...(plainLyrics !== undefined && {plainLyrics}),
+        })
+        .where(eq(tracks.id, id))
+        .returning();
+
+    if (!updatedTrack)
+        return res.status(404).send({error: "Track not found"});
+
+    const parsed = updatedTrack.syncedLyrics ? parseLrc(updatedTrack.syncedLyrics) : [];
+    return res.status(200).send({
+        message: "Lyrics updated",
+        track: updatedTrack,
+        parsed
+    });
 });
 
 const start = async () => {
