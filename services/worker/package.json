@@ -9,6 +9,7 @@
     "@aws-sdk/client-s3": "^3.556.0",
     "ioredis": "^5.3.2",
     "music-metadata": "^11.16.1",
+    "node-vibrant": "^4.0.4",
     "pg": "^8.11.5"
   },
   "devDependencies": {

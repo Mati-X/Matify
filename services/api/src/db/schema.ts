@@ -1,4 +1,4 @@
-import {pgTable, uuid, varchar, integer, timestamp, boolean, numeric, text} from "drizzle-orm/pg-core";
+import {pgTable, uuid, varchar, integer, timestamp, boolean, numeric, text, jsonb} from "drizzle-orm/pg-core";
 
 export const tracks = pgTable("tracks", {
     id: uuid("id").defaultRandom().primaryKey(),
@@ -12,6 +12,8 @@ export const tracks = pgTable("tracks", {
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     syncedLyrics: text("synced_lyrics"),
     plainLyrics: text("plain_lyrics"),
+    coverUrl: text("cover_url"),
+    colorPalette: jsonb("color_palette").$type<{ vibrant?: string; darkVibrant?: string; lightVibrant?: string; muted?: string; darkMuted?: string; lightMuted?: string; }>(),
 });
 
 export const playlists = pgTable("playlists", {

@@ -1,6 +1,7 @@
 import { execSync } from "node:child_process";
 import Redis from "ioredis";
 import {GetObjectCommand, PutObjectCommand, S3Client} from "@aws-sdk/client-s3";
+import { Vibrant } from "node-vibrant/node";
 import * as mm from "music-metadata";
 import fs from "node:fs/promises";
 import pg from "pg";
@@ -116,6 +117,37 @@ async function startWorker() {
         }
 
         const meta = await mm.parseFile(inputPath);
+        const picture = meta.common.picture?.[0];
+
+        let coverUrl = null;
+        let colorPalette = null;
+
+        if (picture) {
+            const ext = picture.format.includes("png") ? "png" : "jpg";
+
+            await s3client.send(new PutObjectCommand({
+                Bucket: "tracks",
+                Key: `covers/${job.s3Key}.${ext}`,
+                Body: picture.data,
+                ContentType: picture.format,
+            }));
+
+            coverUrl = "/storage/tracks/covers/" + job.s3Key + "." + ext;
+
+            try {
+                const palette = await Vibrant.from(Buffer.from(picture.data)).getPalette();
+                colorPalette = {
+                    vibrant: palette.Vibrant?.hex,
+                    darkVibrant: palette.DarkVibrant?.hex,
+                    lightVibrant: palette.LightVibrant?.hex,
+                    muted: palette.Muted?.hex,
+                    darkMuted: palette.DarkMuted?.hex,
+                    lightMuted: palette.LightMuted?.hex,
+                };
+            } catch (e) {
+                console.warn("[Worker] Nie udało się wyciągnąć palety kolorów:", e);
+            }
+        }
 
         const cleanName = job.filename.replace(/\.mp3$/i, "").replace(/^\d+\.\s*/, "");
         const parts = cleanName.split(" - ");
@@ -129,11 +161,23 @@ async function startWorker() {
             console.log(`[Worker] Znaleziono zsynchronizowany tekst dla: "${title}"!`);
         }
 
-        await pool.query(
-            `INSERT INTO tracks (title, artist, album, duration_ms, lufs_integrated, hls_manifest_url, raw_s3_key, synced_lyrics, plain_lyrics)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-            [title, artist, album, durationMs, lufs, `/storage/tracks/hls/${job.s3Key}/playlist.m3u8`, job.s3Key, lyrics?.syncedLyrics || null, lyrics?.plainLyrics || null]
-        );
+            await pool.query(
+                `INSERT INTO tracks (title, artist, album, duration_ms, lufs_integrated, hls_manifest_url, raw_s3_key, synced_lyrics, plain_lyrics, cover_url, color_palette)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+                [
+                    title,
+                    artist,
+                    album,
+                    durationMs,
+                    lufs,
+                    `/storage/tracks/hls/${job.s3Key}/playlist.m3u8`,
+                    job.s3Key,
+                    lyrics?.syncedLyrics || null,
+                    lyrics?.plainLyrics || null,
+                    coverUrl,
+                    colorPalette ? JSON.stringify(colorPalette) : null
+                ]
+            );
         console.log(`[Worker] Zapisano: "${title}" | "${artist}" | "${album}" | ${durationMs}ms`);
 
         await fs.rm(inputPath);
