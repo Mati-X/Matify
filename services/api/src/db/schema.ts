@@ -52,5 +52,25 @@ export const equalizerPresets = pgTable("equalizer_presets", {
     createdAt: timestamp("created_at", {withTimezone: true}).defaultNow().notNull(),
 });
 
+export const users = pgTable("users", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    email: varchar("email", { length: 255 }).notNull().unique(),
+    username: varchar("username", { length: 100 }).notNull().unique(),
+    passwordHash: text("password_hash").notNull(),
+    role: varchar("role", { length: 20 }).default("user").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const favorites = pgTable("favorites", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+        .notNull()
+        .references(() => users.id, { onDelete: "cascade" }),
+    trackId: uuid("track_id")
+        .notNull()
+        .references(() => tracks.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 export type Track = typeof tracks.$inferSelect;
 export type NewTrack = typeof tracks.$inferInsert;

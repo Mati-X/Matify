@@ -4,12 +4,18 @@ import fastifyMultipart, {Multipart, MultipartFile} from "@fastify/multipart";
 import {S3Client, PutObjectCommand, DeleteObjectCommand} from "@aws-sdk/client-s3";
 import Redis from "ioredis";
 import { db, pool } from './db/index';
-import {equalizerPresets, playlistEntries, playlists, tracks} from './db/schema'
+import {equalizerPresets, playlistEntries, playlists, tracks, users} from './db/schema'
 import {and, eq, ilike, or} from "drizzle-orm";
 import {LyricLine, parseLrc} from "./utils/lyricsParser";
+import fastifyJwt from "@fastify/jwt";
+import bcrypt from "bcryptjs";
 
 
 const app = Fastify({ logger: true });
+
+app.register(fastifyJwt, {
+    secret: process.env.JWT_SECRET || "matify-super-secret-jwt-key-change-me",
+});
 
 app.register(fastifyMultipart, {
     limits: { fileSize: 1024 * 1024 * 50 }
@@ -102,7 +108,7 @@ app.get("/tracks", async (req) => {
 });
 
 app.get("/tracks/:id", async (req, res) => {
-    const params = req.params;
+    const params = req.params as { id: string };
      if  (!params.id) {
          return res.status(400).send({ error : "No id provided"});
      }
@@ -114,7 +120,7 @@ app.get("/tracks/:id", async (req, res) => {
 });
 
 app.delete("/tracks/:id", async (req, res) => {
-    const params = req.params;
+    const params = req.params as  { id: string };
     if (!params.id) {
         return res.status(400).send({error: "No id provided"});
     }
@@ -154,7 +160,7 @@ app.get("/playlists", async (req, res) => {
 });
 
 app.post("/playlists/:id/tracks", async (req, res) => {
-    const playlistId  = req.params?.id;
+    const { id: playlistId } = req.params as { id: string };
     const { trackId, position, entryType, sequenceGroupId, atomic } = req.body as {
         trackId: string;
         position: number;
@@ -414,6 +420,58 @@ app.post("/equalizer/presets/reset", async (req, res) => {
         .delete(equalizerPresets)
         .where(eq(equalizerPresets.isDefault, false));
     return res.status(200).send({message: "Default preset reset"});
+});
+
+app.post("/auth/register", async (req,res) => {
+    const {email, username, password} = req.body as { email: string, username: string, password: string };
+    if (!email || !username || !password)
+        return res.status(400).send({error: "Missing required fields"});
+    if (!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/))
+        return res.status(400).send({error: "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number and one special character"});
+    const [existingUser] = await db
+        .select()
+        .from(users)
+        .where(or(eq(users.email, email), eq(users.username, username)))
+        .limit(1);
+    if (existingUser) {
+        if (existingUser.email === email) return res.status(409).send({ error: "Email already exists" });
+        if (existingUser.username === username) return res.status(409).send({ error: "Username already exists" });
+    }
+    if (username.length < 3)
+        return res.status(400).send({error: "Username must be at least 3 characters long"});
+    if (username.length > 20)
+        return res.status(400).send({error: "Username must be at most 20 characters long"});
+    if (!username.match(/^[a-zA-Z0-9_-]+$/))
+        return res.status(400).send({error: "Username must contain only letters, numbers, underscores and hyphens"});
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const [user] = await db.insert(users).values({
+        email,
+        username,
+        passwordHash,
+    }).returning();
+
+    const token = app.jwt.sign({ id: user.id, email: user.email, username: user.username, role: user.role });
+
+    return res.status(201).send( { token: token, user: { id: user.id, email:  user.email, username: user.username, role: user.role } });
+});
+
+app.post("/auth/login", async (req, res) => {
+    const {email,password} =  req.body as {email: string, password: string};
+    const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+     if (!user)
+        return res.status(401).send({error: "Invalid email or password"});
+    const passwordMatch = await bcrypt.compare(password, user.passwordHash);
+    if (!passwordMatch)
+        return res.status(401).send({error: "Invalid email or password"});
+    const token = app.jwt.sign({ id: user.id, email: user.email, username: user.username, role: user.role });
+    return res.status(200).send( { token: token, user: { id: user.id, email:  user.email, username: user.username, role: user.role } });
+});
+
+app.get("/auth/me",  async (req, res) => {
+    await req.jwtVerify();
+    return res.status(200).send( { user: { id: req.user.id, email:  req.user.email, username: req.user.username, role: req.user.role } });
 })
 
 const start = async () => {
