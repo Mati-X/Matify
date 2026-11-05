@@ -14,6 +14,7 @@ export const tracks = pgTable("tracks", {
     plainLyrics: text("plain_lyrics"),
     coverUrl: text("cover_url"),
     colorPalette: jsonb("color_palette").$type<{ vibrant?: string; darkVibrant?: string; lightVibrant?: string; muted?: string; darkMuted?: string; lightMuted?: string; }>(),
+    motion_cover_url: text("motion_cover_url")
 });
 
 export const playlists = pgTable("playlists", {

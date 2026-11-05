@@ -307,6 +307,54 @@ app.put('/tracks/:id/lyrics', async  (req, res) => {
     });
 });
 
+app.post("/tracks/:id/motion", async (req,res) => {
+    const { id } = req.params as { id: string };
+    if (!id)
+        return res.status(400).send({error: "Invalid track id"});
+
+    const [track] = await db
+        .select({
+            id: tracks.id,
+            title: tracks.title,
+            artist: tracks.artist,
+            syncedLyrics: tracks.syncedLyrics,
+            plainLyrics: tracks.plainLyrics,
+        })
+        .from(tracks)
+        .where(eq(tracks.id, id));
+
+
+    if (!track) {
+        return res.status(404).send({ error: "Track not found" });
+    }
+
+    const data = await req.file();
+    if (!data)
+        return res.status(400).send({error: "No file provided"});
+
+    const key = `raw-motion-${id}-${Date.now()}-${data.filename}`;
+
+    await s3client.send(
+        new PutObjectCommand({
+            Bucket: "tracks",
+            Key: key,
+            Body: await data.toBuffer(),
+            ContentType: data.mimetype,
+        })
+    );
+
+    const motionJobPayload = {
+        trackId: id,
+        s3Key: key,
+        filename: data.filename,
+    };
+
+    await redis.rpush("motion:jobs", JSON.stringify(motionJobPayload));
+
+    return res.status(202).send( {message: "Motion cover uploaded and queued for processing"} )
+
+})
+
 const start = async () => {
     try {
         await app.listen({port: PORT, host: "0.0.0.0"});
