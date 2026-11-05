@@ -4,8 +4,8 @@ import fastifyMultipart, {Multipart, MultipartFile} from "@fastify/multipart";
 import {S3Client, PutObjectCommand, DeleteObjectCommand} from "@aws-sdk/client-s3";
 import Redis from "ioredis";
 import { db, pool } from './db/index';
-import {equalizerPresets, playlistEntries, playlists, tracks, users} from './db/schema'
-import {and, eq, ilike, or} from "drizzle-orm";
+import {equalizerPresets, favorites, playlistEntries, playlists, tracks, users} from './db/schema'
+import {and, desc, eq, ilike, or} from "drizzle-orm";
 import {LyricLine, parseLrc} from "./utils/lyricsParser";
 import fastifyJwt from "@fastify/jwt";
 import bcrypt from "bcryptjs";
@@ -472,7 +472,41 @@ app.post("/auth/login", async (req, res) => {
 app.get("/auth/me",  async (req, res) => {
     await req.jwtVerify();
     return res.status(200).send( { user: { id: req.user.id, email:  req.user.email, username: req.user.username, role: req.user.role } });
-})
+});
+
+app.post("/tracks/:id/favorite", async (req, res) => {
+    await req.jwtVerify();
+    const { id: trackId } = req.params as { id: string };
+    const userId = req.user.id;
+
+    const [track] = await db.select().from(tracks).where(eq(tracks.id, trackId));
+    if (!track) return res.status(404).send({ error: "Track not found" });
+
+    const [existingFavorite] = await db.select().from(favorites).where(and(eq(favorites.trackId, trackId), eq(favorites.userId, userId))).limit(1);
+    if (existingFavorite) {
+        await db.delete(favorites).where(and(eq(favorites.trackId, trackId), eq(favorites.userId, userId)));
+        return res.status(200).send({favorited: false});
+    } else {
+        await db.insert(favorites).values({trackId, userId});
+        return res.status(200).send({favorited: true});
+    }
+});
+
+app.get("/me/favorites", async (req, res) => {
+    await req.jwtVerify();
+    const userId = req.user.id;
+    const favoriteTracks = await db
+        .select({
+            favoriteId: favorites.id,
+            likedAt: favorites.createdAt,
+            track: tracks,
+        })
+        .from(favorites)
+        .innerJoin(tracks, eq(favorites.trackId, tracks.id))
+        .where(eq(favorites.userId, userId))
+        .orderBy(desc(favorites.createdAt));
+    return res.status(200).send({ favoriteTracks });
+});
 
 const start = async () => {
     try {
