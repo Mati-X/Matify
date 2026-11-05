@@ -15,4 +15,5 @@ yarn-error.log*
 
 *.mp3
 *.flac
-*.wav
+*.wav**/node_modules/
+*.mp3
