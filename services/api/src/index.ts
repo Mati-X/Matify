@@ -248,6 +248,26 @@ app.get("/playlists/:id/shuffle", async (req, res) => {
     return { queue: shuffledQueue };
 });
 
+app.get("/tracks/:id/lyrics", async (req, res) => {
+    const { id } = req.params as { id: string };
+    const [track] = await db
+        .select({
+            id: tracks.id,
+            title: tracks.title,
+            artist: tracks.artist,
+            syncedLyrics: tracks.syncedLyrics,
+            plainLyrics: tracks.plainLyrics,
+        })
+        .from(tracks)
+        .where(eq(tracks.id, id));
+
+    if (!track) {
+        return res.status(404).send({ error: "Track not found" });
+    }
+
+    return { lyrics: track };
+});
+
 const start = async () => {
     try {
         await app.listen({port: PORT, host: "0.0.0.0"});

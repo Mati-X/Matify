@@ -35,6 +35,40 @@ redis.on("error", (err) => {
     console.error("[Worker] Błąd połączenia z Redisem:", err.message);
 });
 
+function measureLufs(filePath: string): string | null {
+    try {
+        const output = execSync(`ffmpeg -i "${filePath}" -vn -af ebur128 -f null - 2>&1`).toString();
+        const match = output.match(/Integrated loudness:\s+I:\s+(-?\d+(\.\d+)?)/)
+        return match ? match[1] : null;
+    } catch {
+        return null;
+    }
+}
+
+async function fetchLyrics(artist: string, title: string, durationSec: number) {
+    try {
+        const url = new URL("https://lrclib.net/api/get");
+        url.searchParams.set("artist_name", artist);
+        url.searchParams.set("track_name", title);
+        if (durationSec > 0) {
+            url.searchParams.set("duration", Math.round(durationSec).toString());
+        }
+
+        const res = await fetch(url.toString(), {
+            headers: { "User-Agent": "Matify Music Platform v1.0" },
+        });
+
+        if (!res.ok) return null;
+        const data = await res.json();
+        return {
+            syncedLyrics: data.syncedLyrics || null,
+            plainLyrics: data.plainLyrics || null,
+        };
+    } catch {
+        return null;
+    }
+}
+
 async function startWorker() {
     while (true) {
         const result = await redis.blpop("audio:jobs", 0);
@@ -54,6 +88,9 @@ async function startWorker() {
 
         const outputDir = `/tmp/hls/${Date.now()}`;
         await fs.mkdir(outputDir, { recursive: true });
+
+        const lufs = measureLufs(inputPath);
+        console.log(`[Worker] Zmierzona głośność: ${lufs} LUFS`);
 
         console.log(`[Worker] Rozpoczynam transkodowanie do HLS...`);
         execSync(
@@ -87,10 +124,15 @@ async function startWorker() {
         const album = meta.common.album || "Unknown Album";
         const durationMs = Math.round((meta.format.duration || 0) * 1000);
 
+        const lyrics = await fetchLyrics(artist, title, durationMs / 1000);
+        if (lyrics?.syncedLyrics) {
+            console.log(`[Worker] Znaleziono zsynchronizowany tekst dla: "${title}"!`);
+        }
+
         await pool.query(
-            `INSERT INTO tracks (title, artist, album, duration_ms, hls_manifest_url, raw_s3_key)
-             VALUES ($1, $2, $3, $4, $5, $6)`,
-            [title, artist, album, durationMs, `/storage/tracks/hls/${job.s3Key}/playlist.m3u8`, job.s3Key]
+            `INSERT INTO tracks (title, artist, album, duration_ms, lufs_integrated, hls_manifest_url, raw_s3_key, synced_lyrics, plain_lyrics)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+            [title, artist, album, durationMs, lufs, `/storage/tracks/hls/${job.s3Key}/playlist.m3u8`, job.s3Key, lyrics?.syncedLyrics || null, lyrics?.plainLyrics || null]
         );
         console.log(`[Worker] Zapisano: "${title}" | "${artist}" | "${album}" | ${durationMs}ms`);
 

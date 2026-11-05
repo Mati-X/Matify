@@ -1,4 +1,4 @@
-import {pgTable, uuid, varchar, integer, timestamp, boolean} from "drizzle-orm/pg-core";
+import {pgTable, uuid, varchar, integer, timestamp, boolean, numeric, text} from "drizzle-orm/pg-core";
 
 export const tracks = pgTable("tracks", {
     id: uuid("id").defaultRandom().primaryKey(),
@@ -6,9 +6,12 @@ export const tracks = pgTable("tracks", {
     artist: varchar("artist", { length: 255 }),
     album: varchar("album", { length: 255 }),
     durationMs: integer("duration_ms").default(0),
+    lufsIntegrated: numeric("lufs_integrated", { precision: 4, scale: 2 }),
     hlsManifestUrl: varchar("hls_manifest_url", { length: 512 }).notNull(),
     rawS3Key: varchar("raw_s3_key", { length: 512 }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    syncedLyrics: text("synced_lyrics"),
+    plainLyrics: text("plain_lyrics"),
 });
 
 export const playlists = pgTable("playlists", {
