@@ -4,7 +4,7 @@ import fastifyMultipart, {Multipart, MultipartFile} from "@fastify/multipart";
 import {S3Client, PutObjectCommand, DeleteObjectCommand} from "@aws-sdk/client-s3";
 import Redis from "ioredis";
 import { db, pool } from './db/index';
-import {playlistEntries, playlists, tracks} from './db/schema'
+import {equalizerPresets, playlistEntries, playlists, tracks} from './db/schema'
 import {and, eq, ilike, or} from "drizzle-orm";
 import {LyricLine, parseLrc} from "./utils/lyricsParser";
 
@@ -353,6 +353,67 @@ app.post("/tracks/:id/motion", async (req,res) => {
 
     return res.status(202).send( {message: "Motion cover uploaded and queued for processing"} )
 
+});
+
+app.get("/equalizer/presets", async (req, res) => {
+    const {type, search} = req.query as {type?: string, search?: string};
+    const conditions = [];
+    if (type) conditions.push(eq(equalizerPresets.type, type));
+    if (search) conditions.push(ilike(equalizerPresets.name, `%${search}%`));
+
+    const presets = conditions.length > 0
+        ? await db.select().from(equalizerPresets).where(and(...conditions))
+        : await db.select().from(equalizerPresets);
+
+    return { presets };
+});
+
+app.get("/equalizer/presets/:id", async (req, res) => {
+    const {id} = req.params as { id: string };
+    const [preset] = await db.select().from(equalizerPresets).where(eq(equalizerPresets.id, id));
+    if (!preset) {
+        return res.status(404).send({ error: "Preset not found" });
+    }
+    return res.status(200).send({preset: preset});
+});
+
+app.post("/equalizer/presets", async (req, res) => {
+     const {name, type, preamp, gains} = req.body as {name: string, type: string, preamp: number, gains: Record<string, number>};
+
+     if(!name || !gains)
+          return res.status(400).send({error: "Name and gains are required"});
+
+    const [preset] = await db.insert(equalizerPresets).values({
+        name,
+        gains,
+        preamp: preamp ? String(preamp) : "0.00",
+        type: type || "custom",
+    }).returning();
+
+    return res.status(201).send({ preset });
+});
+
+app.delete("/equalizer/presets/:id", async (req, res) => {
+    const {id} = req.params as { id: string };
+    if (!id)
+        return res.status(404).send({error: "Preset not found"});
+
+    const [preset] = await db.select().from(equalizerPresets).where(eq(equalizerPresets.id, id));
+    if (!preset) {
+        return res.status(404).send({ error: "Preset not found" });
+    }
+    if (preset.isDefault  === true)
+        return res.status(400).send({error: "Default preset cannot be deleted"});
+
+    await db.delete(equalizerPresets).where(eq(equalizerPresets.id, id)).returning();
+    return res.status(200).send({ message: "Preset deleted" });
+});
+
+app.post("/equalizer/presets/reset", async (req, res) => {
+    await db
+        .delete(equalizerPresets)
+        .where(eq(equalizerPresets.isDefault, false));
+    return res.status(200).send({message: "Default preset reset"});
 })
 
 const start = async () => {
