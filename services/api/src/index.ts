@@ -4,7 +4,7 @@ import fastifyMultipart, {Multipart, MultipartFile} from "@fastify/multipart";
 import {S3Client, PutObjectCommand, DeleteObjectCommand} from "@aws-sdk/client-s3";
 import Redis from "ioredis";
 import { db, pool } from './db/index';
-import {equalizerPresets, favorites, playlistEntries, playlists, tracks, users} from './db/schema'
+import {equalizerPresets, favorites, playbackHistory, playlistEntries, playlists, tracks, users} from './db/schema'
 import {and, desc, eq, ilike, or} from "drizzle-orm";
 import {LyricLine, parseLrc} from "./utils/lyricsParser";
 import fastifyJwt from "@fastify/jwt";
@@ -506,6 +506,30 @@ app.get("/me/favorites", async (req, res) => {
         .where(eq(favorites.userId, userId))
         .orderBy(desc(favorites.createdAt));
     return res.status(200).send({ favoriteTracks });
+});
+
+app.get("/me/history", async (req,res) => {
+    await req.jwtVerify();
+    const history = await db
+        .select({ playedAt: playbackHistory.createdAt, track: tracks })
+        .from(playbackHistory)
+        .innerJoin(tracks, eq(playbackHistory.trackId, tracks.id))
+        .where(eq(playbackHistory.userId, req.user.id))
+        .orderBy(desc(playbackHistory.createdAt))
+        .limit(50);
+     return res.status(200).send({ history: history });
+});
+
+app.post("/tracks/:id/play", async (req, res) => {
+    await req.jwtVerify();
+    const userId = req.user.id;
+    const { id: trackId } = req.params as { id: string };
+    const [track] = await db.select().from(tracks).where(eq(tracks.id, trackId));
+    if (!track) return res.status(404).send({ error: "Track not found" });
+
+    await db.update( tracks ).set({ playCount:  track.playCount + 1 }).where(eq(tracks.id, trackId));
+    await db.insert(playbackHistory).values({trackId: trackId, userId: userId});
+    return  res.status(200).send({trackId: trackId, userId: userId});
 });
 
 const start = async () => {

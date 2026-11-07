@@ -21,7 +21,8 @@ export const tracks = pgTable("tracks", {
         darkMuted?: string;
         lightMuted?: string;
     }>(),
-    motion_cover_url: text("motion_cover_url")
+    motion_cover_url: text("motion_cover_url"),
+    playCount: integer("play_count").notNull().default(0),
 });
 
 export const playlists = pgTable("playlists", {
@@ -62,6 +63,17 @@ export const users = pgTable("users", {
 });
 
 export const favorites = pgTable("favorites", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+        .notNull()
+        .references(() => users.id, { onDelete: "cascade" }),
+    trackId: uuid("track_id")
+        .notNull()
+        .references(() => tracks.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const playbackHistory = pgTable("playback_history", {
     id: uuid("id").defaultRandom().primaryKey(),
     userId: uuid("user_id")
         .notNull()
