@@ -27,9 +27,11 @@ export const tracks = pgTable("tracks", {
 
 export const playlists = pgTable("playlists", {
     id: uuid("id").defaultRandom().primaryKey(),
-    title: varchar("title", {length: 255}).notNull(),
-    description: varchar("description", {length: 512}),
-    createdAt: timestamp("created_at", {withTimezone: true}).defaultNow().notNull(),
+    title: varchar("title", { length: 255 }).notNull(),
+    description: varchar("description", { length: 512 }),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+    isPublic: boolean("is_public").default(true).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
 export const playlistEntries = pgTable("playlist_entries", {
