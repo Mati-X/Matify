@@ -69,7 +69,7 @@ export const AudioEngine = () => {
     };
   }, [currentTrack]);
 
-  // Synchronizacja stanu odtwarzania (Play / Pause)
+  // Play & Pause
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !currentTrack) return;
@@ -81,7 +81,7 @@ export const AudioEngine = () => {
     }
   }, [isPlaying]);
 
-  // Synchronizacja głośności oraz wyciszenia (Volume & Mute)
+  // Volume & Mute
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
