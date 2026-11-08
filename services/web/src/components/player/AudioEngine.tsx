@@ -95,6 +95,16 @@ export const AudioEngine = () => {
       ref={audioRef}
       className="hidden"
       onTimeUpdate={(e) => setProgress(e.currentTarget.currentTime)}
+      onLoadedMetadata={(e) => {
+        if (e.currentTarget.duration) {
+          usePlayerStore.setState({ duration: e.currentTarget.duration });
+        }
+      }}
+      onDurationChange={(e) => {
+        if (e.currentTarget.duration) {
+          usePlayerStore.setState({ duration: e.currentTarget.duration });
+        }
+      }}
       onEnded={nextTrack}
     />
   );
