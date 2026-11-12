@@ -14,12 +14,13 @@ function App() {
             <AudioEngine/>
             <div className="flex flex-1 overflow-hidden">
                 <SideBar/>
-                <div className={'flex flex-col flex-1 min-w-0'}>
-                    <div className={'w-full h-10 border-b border-neutral-800/80 '}>
-                    {isSearching ? <SearchView/> : <TabBar/>}</div>
+                <div className="flex flex-col flex-1 min-w-0 relative">
+                    <TabBar />
                     <main className="flex-1 overflow-y-auto">
-                        <TrackList/>
+                        <TrackList />
                     </main>
+
+                    {isSearching && <SearchView />}
                 </div>
             </div>
             <PlayerBar/>
