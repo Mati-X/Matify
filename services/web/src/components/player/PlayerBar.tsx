@@ -18,7 +18,7 @@ export function PlayerBar() {
   const setProgress = usePlayerStore((state) => state.setProgress);
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 flex flex-col bg-neutral-950/80 backdrop-blur-xl border-t border-neutral-800/80">
+    <div className="w-full shrink-0 z-50 flex flex-col bg-neutral-950/80 backdrop-blur-xl border-t border-neutral-800/80">
       <ProgressBar
         currentTime={currentTime}
         duration={duration}

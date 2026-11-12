@@ -1,4 +1,4 @@
-import {JSX, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {type Track, usePlayerStore} from "../../store/usePlayerStore.ts";
 import {getTracks} from "../../api/tracks.ts";
 import {Dot, Play} from "lucide-react";
@@ -23,7 +23,7 @@ function TrackList() {
     }
 
     return (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 flex-1 overflow-y-scroll">
             {tracks.map((track) => {
                 const isCurrent = currentTrack?.id === track.id;
 
