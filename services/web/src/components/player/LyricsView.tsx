@@ -12,6 +12,9 @@ function LyricsView() {
     const [lyrics, setLyrics] = useState<LyricLine[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const [isUserScrolling, setIsUserScrolling] = useState(false);
+    const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+
     useEffect(() => {
         if (!currentTrack) return;
         setLoading(true);
@@ -33,12 +36,33 @@ function LyricsView() {
             });
     }, [currentTrack]);
 
+
+
     const activeIndex = lyrics.findIndex((line, i) => {
         const nextTime = lyrics[i + 1]?.time ?? Infinity;
         return currentTime >= line.time && currentTime < nextTime;
     });
 
     const activeLineRef = useRef<HTMLDivElement | null>(null);
+
+
+    useEffect(() => {
+        const lineEl = activeLineRef.current;
+        const containerEl = scrollContainerRef.current;
+        if (!lineEl || !containerEl) return;
+
+        const lineRect = lineEl.getBoundingClientRect();
+        const containerRect = containerEl.getBoundingClientRect();
+
+        const isVisible =
+            lineRect.top >= containerRect.top &&
+            lineRect.bottom <= containerRect.bottom;
+
+        if (isVisible) {
+            setIsUserScrolling(false);
+            lineEl.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+    }, [activeIndex]);
 
     useEffect(() => {
         activeLineRef.current?.scrollIntoView({
@@ -64,12 +88,22 @@ function LyricsView() {
                 )}
             </div>
 
-            {(lyrics.length !== 0) && <div className="flex-1 overflow-y-auto flex flex-col px-12 py-48 relative z-10">
+            {(lyrics.length !== 0) && <div className="flex-1 overflow-y-auto flex flex-col px-12 py-48 relative z-10"
+               style={{
+                   maskImage: "linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%)",
+                   WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%)",
+               }}
+                                           onWheel={() => setIsUserScrolling(true)}
+                                           onTouchMove={() => setIsUserScrolling(true)}
+                                           ref={scrollContainerRef}
+            >
             {loading ? (
                 <div className="text-neutral-500">Loading...</div>
             ) : (lyrics.map((line, i) => {
                     const isActive = i === activeIndex;
                     const isInstrumental = line.text === "···" || line.text.trim() === "" ||  line.text === "♪";
+
+                    const distance = Math.abs(i - activeIndex);
 
                     if (isInstrumental) {
                         const nextTime = lyrics[i + 1]?.time ?? currentTime + 5;
@@ -107,6 +141,9 @@ function LyricsView() {
                                 ? "font-black text-white scale-105 origin-left transition-all duration-300"
                                 : "font-bold text-white/30 hover:text-white/60 blur-[0.4px] transition-all duration-300 cursor-pointer"
                         }`}
+                         style={{
+                             filter: `blur(${isUserScrolling ? 0 : Math.min(distance * 0.75, 10)}px)`,
+                         }}
                     >
                         {line.text}
                     </div>
