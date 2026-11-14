@@ -5,10 +5,11 @@ import SideBar from "./components/layout/SideBar.tsx";
 import TabBar from "./components/layout/TabBar.tsx";
 import SearchView from "./components/tracks/SearchView.tsx";
 import {useUIStore} from "./store/useUIStore.ts";
+import LyricsView from "./components/player/LyricsView.tsx";
 
 function App() {
     const isSearching = useUIStore((s) => s.isSearching);
-
+    const isLyricsOpen = useUIStore((s) => s.isLyricsOpen);
     return (
         <div className="h-screen bg-neutral-950 flex flex-col text-white overflow-hidden">
             <AudioEngine/>
@@ -24,6 +25,7 @@ function App() {
                 </div>
             </div>
             <PlayerBar/>
+            {isLyricsOpen && <LyricsView />}
         </div>
     );
 }

@@ -3,6 +3,7 @@ import { TrackInfo } from "./TrackInfo";
 import { Controls } from "./Controls";
 import { ProgressBar } from "./ProgressBar";
 import { VolumeControl } from "./VolumeControl";
+import LyricsButton from "./LyricsButton.tsx";
 
 export function PlayerBar() {
   const currentTrack = usePlayerStore((state) => state.currentTrack);
@@ -15,14 +16,14 @@ export function PlayerBar() {
   const prevTrack = usePlayerStore((state) => state.prevTrack);
   const nextTrack = usePlayerStore((state) => state.nextTrack);
   const setVolume = usePlayerStore((state) => state.setVolume);
-  const setProgress = usePlayerStore((state) => state.setProgress);
+  const seek = usePlayerStore((state) => state.seek);
 
   return (
     <div className="w-full shrink-0 z-50 flex flex-col bg-neutral-950/80 backdrop-blur-xl border-t border-neutral-800/80">
       <ProgressBar
         currentTime={currentTime}
         duration={duration}
-        onSeek={setProgress}
+        onSeek={seek}
       />
       <div className="flex items-center justify-between px-6 py-3">
         <TrackInfo track={currentTrack} />
@@ -32,11 +33,14 @@ export function PlayerBar() {
           onPrev={prevTrack}
           onNext={nextTrack}
         />
-        <VolumeControl
-          volume={volume}
-          onVolumeChange={setVolume}
-          isMuted={volume === 0}
-        />
+        <div className={'flex gap-4'}>
+          <VolumeControl
+              volume={volume}
+              onVolumeChange={setVolume}
+              isMuted={volume === 0}
+          />
+          <LyricsButton/>
+        </div>
       </div>
     </div>
   );

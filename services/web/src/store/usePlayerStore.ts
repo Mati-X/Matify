@@ -27,6 +27,8 @@ interface PlayerStore {
     setProgress: (progress: number) => void;
     nextTrack: () => void;
     prevTrack: () => void;
+    seekRequest: { time: number; id: number } | null;
+    seek: (time: number) => void;
 };
 
 export const  usePlayerStore = create<PlayerStore>((set) => ({
@@ -38,6 +40,7 @@ export const  usePlayerStore = create<PlayerStore>((set) => ({
     currentTime: 0,
     duration: 0,
     isMuted: false,
+    seekRequest: null,
 
     setTrack: (track, newQueue) => {
         const queue = newQueue || [track];
@@ -72,10 +75,6 @@ export const  usePlayerStore = create<PlayerStore>((set) => ({
             currentTrack: state.queue[prevIndex],
             currentTime: 0,
             isPlaying: true,
-        };
-    }),
-
-
-
-
-}));
+        }}),
+    seek: (time: number) => set({ currentTime: time, seekRequest: { time, id: Date.now() } })
+    }));

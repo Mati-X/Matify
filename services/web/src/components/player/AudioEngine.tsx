@@ -12,6 +12,7 @@ export const AudioEngine = () => {
   const isMuted = usePlayerStore((state) => state.isMuted);
   const nextTrack = usePlayerStore((state) => state.nextTrack);
   const setProgress = usePlayerStore((state) => state.setProgress);
+  const seekRequest = usePlayerStore((state) => state.seekRequest);
 
   // Inicjalizacja strumienia HLS / natywnego Safari po zmianie utworu
   useEffect(() => {
@@ -80,6 +81,13 @@ export const AudioEngine = () => {
       audio.pause();
     }
   }, [isPlaying]);
+
+  // Seek
+  useEffect(() => {
+    if (audioRef.current && seekRequest) {
+      audioRef.current.currentTime = seekRequest.time;
+    }
+  }, [seekRequest]);
 
   // Volume & Mute
   useEffect(() => {
