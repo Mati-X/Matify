@@ -1,4 +1,4 @@
-import {Cog} from "lucide-react";
+import {Settings} from "lucide-react";
 import {useUIStore} from "../../store/useUIStore.ts";
 
 function SideBar() {
@@ -18,7 +18,7 @@ function SideBar() {
                     {[1,2,3,4,5].map((_, index) => <p key={index}>Playlist {index + 1}</p>)}
                 </div>
             </div>
-            <div className={'flex justify-between'}><p>Profile</p><Cog/></div>
+            <div className={'flex justify-between'}><p>Profile</p><Settings/></div>
         </aside>
     );
 }
