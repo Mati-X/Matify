@@ -1,48 +1,59 @@
-import {useEffect, useState} from "react";
-import {type Track, usePlayerStore} from "../../store/usePlayerStore.ts";
-import {getTracks} from "../../api/tracks.ts";
-import {Dot, Play} from "lucide-react";
+import React from "react";
+import { useResizableColumns } from "../../hooks/useResizableColumns.ts";
+import { usePlayerStore } from "../../store/usePlayerStore.ts";
+import { TrackListHeader } from "./TrackListHeader.tsx";
+import { TrackRow } from "./TrackRow.tsx";
+import { type TrackListItem, type TrackListVariant, VARIANT_CONFIG } from "./trackListConfig.ts";
 
-function TrackList() {
+export type { TrackListItem, TrackListVariant } from "./trackListConfig.ts";
 
-    const [tracks, setTracks] = useState<Track[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
+interface TrackListProps {
+    tracks?: TrackListItem[];
+    variant?: TrackListVariant;
+    renderActions?: (track: TrackListItem) => React.ReactNode;
+}
 
-    useEffect(() => {
-        getTracks().then(r =>
-            setTracks(r))
-            .finally(() => setLoading(false));
-    }, []);
+function TrackList(props: TrackListProps) {
+    const variant = props.variant ?? "default";
+    const tracks = props.tracks ?? [];
+    const config = VARIANT_CONFIG[variant];
+    const hasActions = Boolean(props.renderActions);
 
     const setTrack = usePlayerStore((state) => state.setTrack);
     const currentTrack = usePlayerStore((state) => state.currentTrack);
     const isPlaying = usePlayerStore((state) => state.isPlaying);
 
-    if (loading) {
-        return <div className="text-neutral-400 py-8">Ładowanie utworów...</div>;
-    }
+    const { containerRef, gridTemplate, startResize, resetResize } = useResizableColumns(config, hasActions);
 
     return (
-        <div className="flex flex-col gap-2 flex-1 overflow-y-scroll">
-            {tracks.map((track) => {
-                const isCurrent = currentTrack?.id === track.id;
+        <div
+            ref={containerRef}
+            style={{ "--track-cols": gridTemplate } as React.CSSProperties}
+            className="flex flex-col flex-1 select-none"
+        >
+            {config.showLegend && (
+                <TrackListHeader
+                    config={config}
+                    hasActions={hasActions}
+                    startResize={startResize}
+                    resetResize={resetResize}
+                />
+            )}
 
-                return (
-                    <div
+            <div className="flex flex-col gap-0.5 py-1">
+                {tracks.map((track, index) => (
+                    <TrackRow
                         key={track.id}
-                        onClick={() => setTrack(track, tracks)}
-                        className={`p-3  cursor-pointer flex items-center justify-between transition-colors ${
-                            isCurrent ? "bg-neutral-800 text-emerald-400 font-bold" : "hover:bg-neutral-900 text-neutral-300"
-                        }`}
-                    >
-                        <div className="flex items-center gap-3">
-                            <span>{isCurrent && isPlaying ? <Play/> : <Dot/>}</span>
-                            <span>{track.title}</span>
-                        </div>
-                        <span className="text-xs text-neutral-500">{track.artist}</span>
-                    </div>
-                );
-            })}
+                        track={track}
+                        index={index}
+                        config={config}
+                        isCurrent={currentTrack?.id === track.id}
+                        isPlaying={isPlaying}
+                        onPlay={() => setTrack(track, tracks)}
+                        renderActions={props.renderActions}
+                    />
+                ))}
+            </div>
         </div>
     );
 }

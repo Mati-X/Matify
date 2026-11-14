@@ -2,7 +2,7 @@ import { create } from 'zustand';
 
 export type TabType = 'home' | 'album' | 'playlist' | 'artist' | 'user' | 'favorites' | 'settings';
 
-interface Tab {
+export interface Tab {
     id: string;
     title: string;
     type: TabType;

@@ -29,6 +29,7 @@ interface PlayerStore {
     prevTrack: () => void;
     seekRequest: { time: number; id: number } | null;
     seek: (time: number) => void;
+    addedBy? : { id: string; username: string}
 };
 
 export const  usePlayerStore = create<PlayerStore>((set) => ({

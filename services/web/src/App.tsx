@@ -1,18 +1,18 @@
 import { AudioEngine } from "./components/player/AudioEngine";
 import PlayerBar from "./components/player/PlayerBar";
-import TrackList from "./components/tracks/TrackList.tsx";
 import SideBar from "./components/layout/SideBar.tsx";
 import TabBar from "./components/layout/TabBar.tsx";
 import SearchView from "./components/tracks/SearchView.tsx";
-import {useUIStore} from "./store/useUIStore.ts";
+import {type Tab, useUIStore} from "./store/useUIStore.ts";
 import LyricsView from "./components/player/LyricsView.tsx";
 import AlbumView from "./components/tracks/AlbumView.tsx";
+import HomeView from "./components/tracks/HomeView.tsx";
 
 
 function renderTabContent(tab: Tab) {
     switch (tab.type) {
         case "home":
-            return <TrackList />;
+            return <HomeView/>;
         case "album":
             return <AlbumView albumName={tab.entityId ?? ''}/>
         default :

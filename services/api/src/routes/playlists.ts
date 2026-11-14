@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { and, eq } from "drizzle-orm";
 import { db } from "../db/index";
-import { playlistEntries, playlists, tracks } from "../db/schema";
+import { playlistEntries, playlists, tracks, users } from "../db/schema";
 
 export async function playlistsRoutes(app: FastifyInstance) {
     app.post("/", async (req, res) => {
@@ -67,13 +67,24 @@ export async function playlistsRoutes(app: FastifyInstance) {
                 sequenceGroupId: playlistEntries.sequenceGroupId,
                 atomic: playlistEntries.atomic,
                 track: tracks,
+                addedBy: {
+                    id: users.id,
+                    username: users.username,
+                },
             })
             .from(playlistEntries)
             .innerJoin(tracks, eq(playlistEntries.trackId, tracks.id))
+            .leftJoin(users, eq(playlistEntries.addedByUserId, users.id))
             .where(eq(playlistEntries.playlistId, id))
             .orderBy(playlistEntries.position);
 
-        return { playlist, tracks: entries };
+        return {
+            playlist,
+            tracks: entries.map((entry) => ({
+                ...entry,
+                addedBy: entry.addedBy?.id ? entry.addedBy : null,
+            })),
+        };
     });
 
     app.post("/:id/tracks", async (req, res) => {
@@ -107,6 +118,7 @@ export async function playlistsRoutes(app: FastifyInstance) {
                 entryType: entryType || "single",
                 sequenceGroupId: sequenceGroupId || null,
                 atomic: atomic ?? false,
+                addedByUserId: userId,
             })
             .returning();
 

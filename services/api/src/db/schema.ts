@@ -43,6 +43,7 @@ export const playlistEntries = pgTable("playlist_entries", {
     sequenceGroupId: uuid("sequence_group_id"),
     atomic: boolean("atomic").default(false).notNull(),
     allowMidEntry: boolean("allow_mid_entry").default(true).notNull(),
+    addedByUserId: uuid("added_by_user_id").references(() => users.id, {onDelete: "set null"}),
 });
 
 export const equalizerPresets = pgTable("equalizer_presets", {
