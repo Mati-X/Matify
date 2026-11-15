@@ -7,21 +7,21 @@ interface TrackInfoProps {
 export function TrackInfo({ track }: TrackInfoProps) {
   if (!track) {
     return (
-        <div className="flex items-center gap-3 w-64 min-w-[200px]">
-          <div className="w-12 h-12 rounded-lg bg-neutral-800 flex items-center justify-center text-neutral-500 text-xs">
+        <div className="flex items-center gap-4 w-72 min-w-[220px]">
+          <div className="size-20 rounded-2xl bg-neutral-800 flex items-center justify-center text-neutral-500 text-xs">
             NULL
           </div>
-          <div className="flex flex-col">
-            <p className="text-sm font-medium text-neutral-400">No track selected</p>
-            <p className="text-xs text-neutral-600">No track selected</p>
+          <div className="flex flex-col gap-0.5">
+            <p className="text-base font-medium text-neutral-400">No track selected</p>
+            <p className="text-sm text-neutral-600">No track selected</p>
           </div>
         </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-3 min-w-[200px]">
-        <div className="relative size-20 rounded-2xl overflow-hidden shadow-2xl">
+    <div className="flex items-center gap-4 min-w-[220px]">
+        <div className="relative size-20 shrink-0 rounded-2xl overflow-hidden shadow-2xl">
             {track.coverUrl ? (
                 <img
                     src={track.coverUrl}
@@ -45,9 +45,9 @@ export function TrackInfo({ track }: TrackInfoProps) {
                 />
             )}
         </div>
-      <div className="flex flex-col overflow-hidden">
-        <p className="font-semibold text-sm text-neutral-100 truncate">{track.title}</p>
-        <p className="text-xs text-neutral-400 truncate">{track.artist || "Unknown artist"}</p>
+      <div className="flex flex-col gap-0.5 overflow-hidden">
+        <p className="font-semibold text-base text-neutral-100 truncate">{track.title}</p>
+        <p className="text-sm text-neutral-400 truncate">{track.artist || "Unknown artist"}</p>
       </div>
     </div>
   );

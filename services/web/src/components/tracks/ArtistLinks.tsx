@@ -7,7 +7,7 @@ interface ArtistLinksProps {
     className?: string;
 }
 
-export function ArtistLinks({ artist, className = "truncate text-xs text-neutral-400" }: ArtistLinksProps) {
+export function ArtistLinks({ artist, className = "truncate text-sm text-neutral-400" }: ArtistLinksProps) {
     const openTab = useUIStore((state) => state.openTab);
     const artists = parseArtists(artist);
 

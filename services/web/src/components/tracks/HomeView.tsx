@@ -11,14 +11,9 @@ function HomeView() {
         console.log(tracks)
     }, []);
 
-    console.log( tracks)
 
-    return (<>
+    return (
             <TrackList tracks={tracks} variant={'default'}/>
-            <TrackList tracks={tracks} variant={'album'}/>
-            <TrackList tracks={tracks} variant={'playlist'}/>
-            <TrackList tracks={tracks} variant={'artist'}/>
-            <TrackList tracks={tracks} variant={'favorites'}/></>
     );
 }
 

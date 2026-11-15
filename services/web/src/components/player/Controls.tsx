@@ -9,24 +9,24 @@ interface ControlsProps {
 
 export function Controls({ isPlaying, onTogglePlay, onPrev, onNext }: ControlsProps) {
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-5">
       <button
         onClick={onPrev}
         className="p-2 text-neutral-400 hover:text-white transition-colors cursor-pointer"
         title="Previous"
       >
-        <SkipBack className="w-5 h-5 fill-current" />
+        <SkipBack className="w-6 h-6 fill-current" />
       </button>
 
       <button
         onClick={onTogglePlay}
-        className="p-3 bg-white text-black rounded-full hover:scale-105 active:scale-95 transition-transform shadow-lg cursor-pointer"
+        className="p-3.5 bg-white text-black rounded-full hover:scale-105 active:scale-95 transition-transform shadow-lg cursor-pointer"
         title={isPlaying ? "Pause" : "Play"}
       >
         {isPlaying ? (
-          <Pause className="w-5 h-5 fill-current" />
+          <Pause className="w-6 h-6 fill-current" />
         ) : (
-          <Play className="w-5 h-5 fill-current translate-x-0.5" />
+          <Play className="w-6 h-6 fill-current translate-x-0.5" />
         )}
       </button>
 
@@ -35,7 +35,7 @@ export function Controls({ isPlaying, onTogglePlay, onPrev, onNext }: ControlsPr
         className="p-2 text-neutral-400 hover:text-white transition-colors cursor-pointer"
         title="Next"
       >
-        <SkipForward className="w-5 h-5 fill-current" />
+        <SkipForward className="w-6 h-6 fill-current" />
       </button>
     </div>
   );

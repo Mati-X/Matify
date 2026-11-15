@@ -21,7 +21,7 @@ function TabBar() {
     const activeTabId = useUIStore((s) => s.activeTabId);
     const closeTab = useUIStore((s) => s.closeTab);
     return (
-        <nav className="w-full h-10 shrink-0 border-b border-neutral-800/80 overflow-x-auto flex-nowrap">
+        <nav className="w-full h-11 shrink-0 border-b border-neutral-800/80 overflow-x-auto flex-nowrap">
              <ul className={'flex flex-row h-full'}>
                 {tabs.map((tab) => {
                     const Icon = TAB_ICONS[tab.type];

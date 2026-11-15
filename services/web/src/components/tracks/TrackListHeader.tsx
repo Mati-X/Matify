@@ -35,7 +35,7 @@ export function TrackListHeader({ config, hasActions, startResize, resetResize }
     return (
         <div
             style={{ gridTemplateColumns: "var(--track-cols)" }}
-            className="sticky top-0 z-10 grid items-center gap-4 px-3 py-2 text-xs font-medium text-neutral-400 bg-neutral-950/90 backdrop-blur-md border-b border-white/10"
+            className="sticky top-0 z-10 grid items-center gap-4 px-4 py-3 text-sm font-medium text-neutral-400 bg-neutral-950/90 backdrop-blur-md border-b border-white/10"
         >
             {config.showIndex && <span className="text-center">#</span>}
             <span>Title</span>

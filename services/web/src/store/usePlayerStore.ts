@@ -10,6 +10,7 @@ export interface Track {
     coverUrl?: string | null;
     colorPalette?: Record<string, string> | null;
     motion_cover_url?: string | null;
+    addedBy? : { id: string; username: string} | null
 }
 
 interface PlayerStore {
@@ -29,10 +30,22 @@ interface PlayerStore {
     prevTrack: () => void;
     seekRequest: { time: number; id: number } | null;
     seek: (time: number) => void;
-    addedBy? : { id: string; username: string}
+    isShuffled: boolean;
+    originalQueue: Track[];
+    toggleShuffle: () => void;
+    playShuffled: (tracks: Track[]) => void;
 };
 
-export const  usePlayerStore = create<PlayerStore>((set) => ({
+function shuffleTracks(tracks: Track[]): Track[] {
+    const copy = [...tracks];
+    for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+}
+
+export const usePlayerStore = create<PlayerStore>((set) => ({
     currentTrack: null,
     isPlaying: false,
     queue: [],
@@ -42,19 +55,67 @@ export const  usePlayerStore = create<PlayerStore>((set) => ({
     duration: 0,
     isMuted: false,
     seekRequest: null,
+    isShuffled: false,
+    originalQueue: [],
+    toggleShuffle: () => set((state) => {
+        const newValue = !state.isShuffled;
+        const currentTrack = state.currentTrack ?? state.queue[state.queueIndex];
 
-    setTrack: (track, newQueue) => {
-        const queue = newQueue || [track];
-        const queueIndex = queue.findIndex((t) => t.id === track.id);
+        if (!currentTrack || state.queue.length === 0) {
+            return { isShuffled: newValue };
+        }
 
+        if (newValue) {
+            const rest = state.originalQueue.filter((track) => track.id !== currentTrack.id);
+            const shuffled = [currentTrack, ...shuffleTracks(rest)];
+            return { queue: shuffled, queueIndex: 0, isShuffled: true };
+        }
+
+        const originalIndex = state.originalQueue.findIndex((track) => track.id === currentTrack.id);
+        return {
+            queue: state.originalQueue,
+            queueIndex: originalIndex !== -1 ? originalIndex : 0,
+            isShuffled: false,
+        };
+    }),
+    playShuffled: (tracks) => {
+        if (tracks.length === 0) return;
+        const shuffled = shuffleTracks(tracks);
         set({
-            currentTrack: track,
-            queue,
-            queueIndex: queueIndex !== -1 ? queueIndex : 0,
+            currentTrack: shuffled[0],
+            queue: shuffled,
+            originalQueue: tracks,
+            queueIndex: 0,
+            isShuffled: true,
             isPlaying: true,
             currentTime: 0,
         });
     },
+    setTrack: (track, newQueue) => set((state) => {
+        const originalQueue = newQueue || [track];
+        if (state.isShuffled) {
+            const rest = originalQueue.filter((t) => t.id !== track.id);
+            const shuffled = [track, ...shuffleTracks(rest)];
+            return {
+                currentTrack: track,
+                queue: shuffled,
+                originalQueue,
+                queueIndex: 0,
+                isPlaying: true,
+                currentTime: 0,
+            };
+        }
+
+        const queueIndex = originalQueue.findIndex((t) => t.id === track.id);
+        return {
+            currentTrack: track,
+            queue: originalQueue,
+            originalQueue,
+            queueIndex: queueIndex !== -1 ? queueIndex : 0,
+            isPlaying: true,
+            currentTime: 0,
+        };
+    }),
     togglePlay: () => set((state) => ({ isPlaying: !state.isPlaying })),
     setVolume: (volume) => set({ volume }),
     setProgress: (progress) => set({ currentTime: progress }),

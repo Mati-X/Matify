@@ -1,8 +1,8 @@
-export function formatDuration(durationMs?: number | null): string {
+export function formatDuration(durationMs?: number | null, extended = false): string {
     if (!durationMs) return "0:00";
     const minutes = Math.floor(durationMs / 60000);
     const seconds = Math.floor((durationMs % 60000) / 1000);
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+    return `${minutes}${extended ? " min " : ":"}${seconds.toString().padStart(2, "0")}${extended ? ' s' : ''}`;
 }
 
 export function formatDate(dateStr?: string | null): string {

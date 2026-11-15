@@ -25,7 +25,7 @@ export function PlayerBar() {
         duration={duration}
         onSeek={seek}
       />
-      <div className="flex items-center justify-between px-6 py-3">
+      <div className="flex items-center justify-between px-8 py-4">
         <TrackInfo track={currentTrack} />
         <Controls
           isPlaying={isPlaying}

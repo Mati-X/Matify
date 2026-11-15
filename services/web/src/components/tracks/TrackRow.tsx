@@ -30,38 +30,38 @@ export function TrackRow({
         <div
             onClick={onPlay}
             style={{ gridTemplateColumns: "var(--track-cols)" }}
-            className={`group grid items-center gap-4 px-3 py-2 rounded-md cursor-pointer transition-colors ${
+            className={`group grid items-center gap-4 px-4 py-3 rounded-md cursor-pointer transition-colors ${
                 isCurrent ? "bg-white/10 text-emerald-400" : "hover:bg-white/5 text-neutral-300"
             }`}
         >
             {config.showIndex && (
-                <span className="text-center text-sm tabular-nums text-neutral-400 flex items-center justify-center">
+                <span className="text-center text-base tabular-nums text-neutral-400 flex items-center justify-center">
                     {isCurrent && isPlaying ? (
                         <Volume2 className="w-4 h-4 text-emerald-400" />
                     ) : (
                         <>
                             <span className="group-hover:hidden">{index + 1}</span>
-                            <Play className="w-3.5 h-3.5 hidden group-hover:block fill-current text-white" />
+                            <Play className="w-4 h-4 hidden group-hover:block fill-current text-white" />
                         </>
                     )}
                 </span>
             )}
 
-            <div className="flex items-center gap-3 min-w-0">
+            <div className="flex items-center gap-3.5 min-w-0">
                 {config.showCover && (
                     track.coverUrl ? (
                         <img
                             src={track.coverUrl}
                             alt={track.title}
                             loading="lazy"
-                            className="w-10 h-10 shrink-0 rounded object-cover bg-neutral-800"
+                            className="w-12 h-12 shrink-0 rounded object-cover bg-neutral-800"
                         />
                     ) : (
-                        <div className="w-10 h-10 shrink-0 rounded bg-neutral-800" />
+                        <div className="w-12 h-12 shrink-0 rounded bg-neutral-800" />
                     )
                 )}
-                <div className="flex flex-col min-w-0">
-                    <span className={`truncate text-sm font-medium ${isCurrent ? "text-emerald-400" : "text-white"}`}>
+                <div className="flex flex-col gap-0.5 min-w-0">
+                    <span className={`truncate text-base font-medium ${isCurrent ? "text-emerald-400" : "text-white"}`}>
                         {track.title}
                     </span>
                     <ArtistLinks artist={track.artist} />
@@ -131,7 +131,7 @@ export function TrackRow({
                 </div>
             )}
 
-            <span className="text-right tabular-nums text-xs text-neutral-400">
+            <span className="text-right tabular-nums text-sm text-neutral-400">
                 {formatDuration(track.durationMs)}
             </span>
         </div>
