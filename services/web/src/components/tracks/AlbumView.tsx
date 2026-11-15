@@ -32,16 +32,16 @@ export default function AlbumView({albumName } : {albumName: string} ) {
 
 
     return (<div>
-        <div className={'relative overflow-hidden p-6'}>
-            <div className={'absolute w-full h-full left-0 top-0 blur-3xl absolute inset-0 pointer-events-none'}>
+        <div className={'relative overflow-hidden h-[420px] p-8'}>
+            <div className={'absolute w-full h-full left-0 top-0 blur-3xl inset-0 pointer-events-none'}>
                 {firstTrack?.motion_cover_url  ? <video src={firstTrack.motion_cover_url} autoPlay loop muted playsInline className="w-full h-full object-cover blur-2xl scale-125 opacity-50" />:
                     <img src={firstTrack?.coverUrl ?? undefined}  alt={firstTrack?.title} className="w-full h-full object-cover blur-2xl scale-125 opacity-45" ></img>}
             </div>
 
-            <div className={'absolute w-full h-full left-0 top-0 bg-gradient-to-b from-black/10 via-neutral-950/55 to-neutral-950 to-neutral-950 absolute inset-0 pointer-events-none'}></div>
-            <div className={'flex items-stretch gap-12 p-6'}>
-                {firstTrack?.motion_cover_url  ? <video src={firstTrack.motion_cover_url} autoPlay loop muted className={'size-96 z-10 rounded-xl shadow-2xl object-cover'}></video> :
-                    <img src={firstTrack?.coverUrl ?? undefined}  alt={firstTrack?.title} className={'size-96 z-10 rounded-xl shadow-2xl object-cover'}></img>}
+            <div className={'absolute w-full h-full left-0 top-0 bg-gradient-to-b from-black/10 via-neutral-950/55 to-neutral-950 inset-0 pointer-events-none'}></div>
+            <div className={'flex items-stretch gap-10 h-full'}>
+                {firstTrack?.motion_cover_url  ? <video src={firstTrack.motion_cover_url} autoPlay loop muted className={'h-full aspect-square shrink-0 z-10 rounded-xl shadow-2xl object-cover'}></video> :
+                    <img src={firstTrack?.coverUrl ?? undefined}  alt={firstTrack?.title} className={'h-full aspect-square shrink-0 z-10 rounded-xl shadow-2xl object-cover'}></img>}
 
                 <div className={'flex flex-col  justify-between gap-4 z-10'}>
                     <div></div>

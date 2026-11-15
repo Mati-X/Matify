@@ -7,6 +7,7 @@ import {type Tab, useUIStore} from "./store/useUIStore.ts";
 import LyricsView from "./components/player/LyricsView.tsx";
 import AlbumView from "./components/tracks/AlbumView.tsx";
 import HomeView from "./components/tracks/HomeView.tsx";
+import ArtistView from "./components/tracks/ArtistView.tsx";
 
 
 function renderTabContent(tab: Tab) {
@@ -15,6 +16,8 @@ function renderTabContent(tab: Tab) {
             return <HomeView/>;
         case "album":
             return <AlbumView albumName={tab.entityId ?? ''}/>
+        case "artist":
+             return <ArtistView artistName={tab.entityId ?? ''}/>
         default :
             return "es"
     }
