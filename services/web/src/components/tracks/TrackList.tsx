@@ -29,7 +29,7 @@ function TrackList(props: TrackListProps) {
         <div
             ref={containerRef}
             style={{ "--track-cols": gridTemplate } as React.CSSProperties}
-            className="flex flex-col flex-1 select-none"
+            className="flex flex-col flex-1 select-none m-12 "
         >
             {config.showLegend && (
                 <TrackListHeader
