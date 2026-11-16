@@ -5,6 +5,7 @@ export const tracks = pgTable("tracks", {
     title: varchar("title", {length: 255}).notNull(),
     artist: varchar("artist", {length: 255}),
     album: varchar("album", {length: 255}),
+    trackNumber: integer("track_number"),
     durationMs: integer("duration_ms").default(0),
     lufsIntegrated: numeric("lufs_integrated", {precision: 4, scale: 2}),
     hlsManifestUrl: varchar("hls_manifest_url", {length: 512}).notNull(),

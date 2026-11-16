@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { MultipartFile } from "@fastify/multipart";
 import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
-import { and, eq, ilike, or, sql } from "drizzle-orm";
+import { and, asc, eq, ilike, or, sql } from "drizzle-orm";
 import { db } from "../db/index";
 import { favorites, playbackHistory, tracks } from "../db/schema";
 import { s3client } from "../lib/s3";
@@ -61,8 +61,8 @@ export async function tracksRoutes(app: FastifyInstance) {
 
         const query = db.select().from(tracks);
         const allTracks = conditions.length > 0
-            ? await query.where(and(...conditions))
-            : await query;
+            ? await query.where(and(...conditions)).orderBy(asc(tracks.trackNumber), asc(tracks.createdAt))
+            : await query.orderBy(asc(tracks.trackNumber), asc(tracks.createdAt));
 
         return { tracks: allTracks };
     });

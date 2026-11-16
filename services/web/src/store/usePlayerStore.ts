@@ -5,6 +5,7 @@ export interface Track {
     title: string;
     artist?: string | null;
     album?: string | null;
+    trackNumber?: number | null;
     durationMs?: number | null;
     hlsManifestUrl: string;
     coverUrl?: string | null;

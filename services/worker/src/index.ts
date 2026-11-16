@@ -151,6 +151,7 @@ async function processAudioJob(job: { filename: string; s3Key: string; uploadedA
     const title = meta.common.title || (parts.length > 1 ? parts.slice(1).join(" - ").trim() : cleanName.trim());
     const artist = meta.common.artist || (parts.length > 1 ? parts[0].trim() : "Unknown Artist");
     const album = meta.common.album || "Unknown Album";
+    const trackNumber = meta.common.track.no ?? null;
     const durationMs = Math.round((meta.format.duration || 0) * 1000);
 
     const lyrics = await fetchLyrics(artist, title, durationMs / 1000);
@@ -159,12 +160,13 @@ async function processAudioJob(job: { filename: string; s3Key: string; uploadedA
     }
 
     await pool.query(
-        `INSERT INTO tracks (title, artist, album, duration_ms, lufs_integrated, hls_manifest_url, raw_s3_key, synced_lyrics, plain_lyrics, cover_url, color_palette)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+        `INSERT INTO tracks (title, artist, album, track_number, duration_ms, lufs_integrated, hls_manifest_url, raw_s3_key, synced_lyrics, plain_lyrics, cover_url, color_palette)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
         [
             title,
             artist,
             album,
+            trackNumber,
             durationMs,
             lufs,
             `/storage/tracks/hls/${job.s3Key}/playlist.m3u8`,
