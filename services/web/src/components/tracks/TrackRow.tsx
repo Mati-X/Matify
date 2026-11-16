@@ -13,6 +13,7 @@ interface TrackRowProps {
     isPlaying: boolean;
     onPlay: () => void;
     renderActions?: (track: TrackListItem) => React.ReactNode;
+     color?: string;
 }
 
 export function TrackRow({
@@ -23,21 +24,27 @@ export function TrackRow({
     isPlaying,
     onPlay,
     renderActions,
+    color
 }: TrackRowProps) {
     const openTab = useUIStore((state) => state.openTab);
 
     return (
         <div
             onClick={onPlay}
-            style={{ gridTemplateColumns: "var(--track-cols)" }}
+            style={{
+                gridTemplateColumns: "var(--track-cols, repeat(5, minmax(0, 1fr)))",
+                ...(isCurrent && color ? { color } : {}),
+            }}
             className={`group grid items-center gap-4 px-4 py-3 rounded-md cursor-pointer transition-colors ${
-                isCurrent ? "bg-white/10 text-emerald-400" : "hover:bg-white/5 text-neutral-300"
+                isCurrent
+                    ? `bg-white/10 ${color ? "text-[${color}]" : "text-emerald-400"}`
+                    : "hover:bg-white/5 text-neutral-300"
             }`}
         >
             {config.showIndex && (
                 <span className="text-center text-base tabular-nums text-neutral-400 flex items-center justify-center">
                     {isCurrent && isPlaying ? (
-                        <Volume2 className="w-4 h-4 text-emerald-400" />
+                        <Volume2 className={`w-4 h-4 ${color ? "text-[${color}]" : "text-emerald-400"}`} />
                     ) : (
                         <>
                             <span className="group-hover:hidden">{index + 1}</span>
@@ -61,7 +68,7 @@ export function TrackRow({
                     )
                 )}
                 <div className="flex flex-col gap-0.5 min-w-0">
-                    <span className={`truncate text-base font-medium ${isCurrent ? "text-emerald-400" : "text-white"}`}>
+                    <span className={`truncate text-base font-medium ${isCurrent ? color ? "text-[${color}]" : "text-emerald-400" : "text-white"}`}>
                         {track.title}
                     </span>
                     <ArtistLinks artist={track.artist} />

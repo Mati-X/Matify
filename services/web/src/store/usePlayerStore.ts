@@ -14,6 +14,8 @@ export interface Track {
     addedBy? : { id: string; username: string} | null
 }
 
+export type RepeatMode = "off" | "all" | "one";
+
 interface PlayerStore {
     currentTrack: Track | null;
     isPlaying: boolean;
@@ -35,6 +37,9 @@ interface PlayerStore {
     originalQueue: Track[];
     toggleShuffle: () => void;
     playShuffled: (tracks: Track[]) => void;
+    repeatMode: RepeatMode;
+    cycleRepeatMode: () => void;
+    handleTrackEnded: () => void;
 };
 
 function shuffleTracks(tracks: Track[]): Track[] {
@@ -58,6 +63,26 @@ export const usePlayerStore = create<PlayerStore>((set) => ({
     seekRequest: null,
     isShuffled: false,
     originalQueue: [],
+    repeatMode: "off",
+    cycleRepeatMode: () => set((state) => {
+        const order: RepeatMode[] = ["off", "all", "one"];
+        const nextMode = order[(order.indexOf(state.repeatMode) + 1) % order.length];
+        return { repeatMode: nextMode };
+    }),
+    handleTrackEnded: () => set((state) => {
+        if (state.queue.length === 0) return state;
+        const isLast = state.queueIndex >= state.queue.length - 1;
+        if (state.repeatMode === "off" && isLast) {
+            return { isPlaying: false, currentTime: 0 };
+        }
+        const nextIndex = (state.queueIndex + 1) % state.queue.length;
+        return {
+            queueIndex: nextIndex,
+            currentTrack: state.queue[nextIndex],
+            currentTime: 0,
+            isPlaying: true,
+        };
+    }),
     toggleShuffle: () => set((state) => {
         const newValue = !state.isShuffled;
         const currentTrack = state.currentTrack ?? state.queue[state.queueIndex];

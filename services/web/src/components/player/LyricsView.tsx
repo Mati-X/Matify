@@ -90,8 +90,8 @@ function LyricsView() {
 
             {(lyrics.length !== 0) && <div className="flex-1 overflow-y-auto flex flex-col px-12 py-48 relative z-10"
                style={{
-                   maskImage: "linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%)",
-                   WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%)",
+                   maskImage: "linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%)",
+                   WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 25, black 75%, transparent 100%)",
                }}
                                            onWheel={() => setIsUserScrolling(true)}
                                            onTouchMove={() => setIsUserScrolling(true)}
@@ -152,9 +152,9 @@ function LyricsView() {
             )}
         </div>}
 
-            <div className="flex-1 aspect-square rounded-3xl overflow-hidden relative shrink-0 z-10 hidden lg:block relative">
+            <div className="flex-1 aspect-square rounded-3xl overflow-hidden relative shrink-0 z-10 hidden lg:block">
                 {currentTrack?.coverUrl && (
-                    <img src={currentTrack.coverUrl} className="aspect-square w-full h-full p-30 object-cover" />
+                    <img src={currentTrack.coverUrl} className="aspect-square w-full p-30 object-cover" />
                 )}
                 {currentTrack?.motion_cover_url && (
                     <video
@@ -163,7 +163,7 @@ function LyricsView() {
                         loop
                         muted
                         playsInline
-                        className="aspect-square absolute inset-0 w-full h-full p-30 object-cover"
+                        className="aspect-square absolute inset-0 w-full p-30 object-cover"
                     />
                 )}
             </div>

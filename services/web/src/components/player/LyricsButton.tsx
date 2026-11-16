@@ -8,12 +8,12 @@ function LyricsButton() {
     return (
         <button
             onClick={toggleLyrics}
-            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+            className={`p-3 rounded-lg transition-colors cursor-pointer ${
                 isLyricsOpen ? "text-emerald-400 bg-neutral-800" : "text-neutral-400 hover:text-white"
             }`}
             title="Tekst utworu"
         >
-            <Mic2 className="w-4 h-4" />
+            <Mic2 className="size-5" />
         </button>
     );
 }

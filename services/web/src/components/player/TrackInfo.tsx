@@ -7,7 +7,7 @@ interface TrackInfoProps {
 export function TrackInfo({ track }: TrackInfoProps) {
   if (!track) {
     return (
-        <div className="flex items-center gap-4 w-72 min-w-[220px]">
+        <div className="flex items-center gap-4 w-72 min-w-0">
           <div className="size-20 rounded-2xl bg-neutral-800 flex items-center justify-center text-neutral-500 text-xs">
             NULL
           </div>
@@ -20,7 +20,7 @@ export function TrackInfo({ track }: TrackInfoProps) {
   }
 
   return (
-    <div className="flex items-center gap-4 min-w-[220px]">
+    <div className="flex items-center gap-4 min-w-0">
         <div className="relative size-20 shrink-0 rounded-2xl overflow-hidden shadow-2xl">
             {track.coverUrl ? (
                 <img
@@ -45,7 +45,7 @@ export function TrackInfo({ track }: TrackInfoProps) {
                 />
             )}
         </div>
-      <div className="flex flex-col gap-0.5 overflow-hidden">
+      <div className="flex flex-col gap-0.5 overflow-hidden min-w-0 flex-1">
         <p className="font-semibold text-base text-neutral-100 truncate">{track.title}</p>
         <p className="text-sm text-neutral-400 truncate">{track.artist || "Unknown artist"}</p>
       </div>

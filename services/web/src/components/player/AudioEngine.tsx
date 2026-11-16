@@ -10,7 +10,8 @@ export const AudioEngine = () => {
   const isPlaying = usePlayerStore((state) => state.isPlaying);
   const volume = usePlayerStore((state) => state.volume);
   const isMuted = usePlayerStore((state) => state.isMuted);
-  const nextTrack = usePlayerStore((state) => state.nextTrack);
+  const repeatMode = usePlayerStore((state) => state.repeatMode);
+  const handleTrackEnded = usePlayerStore((state) => state.handleTrackEnded);
   const setProgress = usePlayerStore((state) => state.setProgress);
   const seekRequest = usePlayerStore((state) => state.seekRequest);
 
@@ -113,7 +114,15 @@ export const AudioEngine = () => {
           usePlayerStore.setState({ duration: e.currentTarget.duration });
         }
       }}
-      onEnded={nextTrack}
+      onEnded={(e) => {
+        if (repeatMode === "one") {
+          e.currentTarget.currentTime = 0;
+          setProgress(0);
+          e.currentTarget.play().catch(() => {});
+          return;
+        }
+        handleTrackEnded();
+      }}
     />
   );
 };

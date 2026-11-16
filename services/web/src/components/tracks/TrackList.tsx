@@ -11,6 +11,7 @@ interface TrackListProps {
     tracks?: TrackListItem[];
     variant?: TrackListVariant;
     renderActions?: (track: TrackListItem) => React.ReactNode;
+     color?: string;
 }
 
 function TrackList(props: TrackListProps) {
@@ -51,6 +52,7 @@ function TrackList(props: TrackListProps) {
                         isPlaying={isPlaying}
                         onPlay={() => setTrack(track, tracks)}
                         renderActions={props.renderActions}
+                        color={props.color}
                     />
                 ))}
             </div>

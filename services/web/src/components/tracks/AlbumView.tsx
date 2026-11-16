@@ -85,6 +85,6 @@ export default function AlbumView({albumName } : {albumName: string} ) {
                 </div>
             </div>
         </div>
-        <TrackList tracks={albumTracks} variant={'album'}/>
+        <TrackList tracks={albumTracks} variant={'album'} color={accentColor}/>
     </div>)
 }
