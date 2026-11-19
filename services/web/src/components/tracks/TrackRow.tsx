@@ -1,5 +1,5 @@
 import React from "react";
-import { Play, Volume2 } from "lucide-react";
+import { MoreHorizontal, Play, Volume2 } from "lucide-react";
 import { useUIStore } from "../../store/useUIStore.ts";
 import { formatDate, formatDuration } from "../../utils/trackFormatters.ts";
 import { ArtistLinks } from "./ArtistLinks.tsx";
@@ -12,8 +12,9 @@ interface TrackRowProps {
     isCurrent: boolean;
     isPlaying: boolean;
     onPlay: () => void;
+    onOpenMenu: (track: TrackListItem, x: number, y: number) => void;
     renderActions?: (track: TrackListItem) => React.ReactNode;
-     color?: string;
+    color?: string;
 }
 
 export function TrackRow({
@@ -23,6 +24,7 @@ export function TrackRow({
     isCurrent,
     isPlaying,
     onPlay,
+    onOpenMenu,
     renderActions,
     color
 }: TrackRowProps) {
@@ -31,13 +33,17 @@ export function TrackRow({
     return (
         <div
             onClick={onPlay}
+            onContextMenu={(e) => {
+                e.preventDefault();
+                onOpenMenu(track, e.clientX, e.clientY);
+            }}
             style={{
                 gridTemplateColumns: "var(--track-cols, repeat(5, minmax(0, 1fr)))",
                 ...(isCurrent && color ? { color } : {}),
             }}
             className={`group grid items-center gap-4 px-4 py-3 rounded-md cursor-pointer transition-colors ${
                 isCurrent
-                    ? `bg-white/10 ${color ? "text-[${color}]" : "text-emerald-400"}`
+                    ? `bg-white/10 ${color ? "" : "text-emerald-400"}`
                     : "hover:bg-white/5 text-neutral-300"
             }`}
         >
@@ -132,11 +138,20 @@ export function TrackRow({
                 </span>
             )}
 
-            {renderActions && (
-                <div onClick={(e) => e.stopPropagation()} className="flex items-center justify-end">
-                    {renderActions(track)}
-                </div>
-            )}
+            <div onClick={(e) => e.stopPropagation()} className="flex items-center justify-end gap-2">
+                {renderActions?.(track)}
+                <button
+                    type="button"
+                    aria-label={`More actions for ${track.title}`}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenMenu(track, e.clientX, e.clientY);
+                    }}
+                    className="p-1.5 rounded-md text-neutral-400 hover:text-white hover:bg-white/10 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
+                >
+                    <MoreHorizontal className="w-4 h-4" />
+                </button>
+            </div>
 
             <span className="text-right tabular-nums text-sm text-neutral-400">
                 {formatDuration(track.durationMs)}

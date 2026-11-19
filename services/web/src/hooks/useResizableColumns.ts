@@ -11,8 +11,7 @@ const DEFAULT_WIDTHS: Record<ResizableCol, number> = {
 
 function buildGridTemplate(
     config: VariantConfig,
-    widths: Record<ResizableCol, number>,
-    hasActions: boolean
+    widths: Record<ResizableCol, number>
 ) {
     const cols: string[] = [];
     if (config.showIndex) cols.push("2rem");
@@ -20,12 +19,12 @@ function buildGridTemplate(
     if (config.showAlbum) cols.push(`${widths.album}px`);
     if (config.showAddedBy) cols.push(`${widths.addedBy}px`);
     if (config.showDateAdded) cols.push(`${widths.dateAdded}px`);
-    if (hasActions) cols.push("auto");
+    cols.push("auto");
     cols.push("4rem");
     return cols.join(" ");
 }
 
-export function useResizableColumns(config: VariantConfig, hasActions: boolean) {
+export function useResizableColumns(config: VariantConfig, _hasActions?: boolean) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [colWidths, setColWidths] = useState<Record<ResizableCol, number>>(DEFAULT_WIDTHS);
 
@@ -43,7 +42,7 @@ export function useResizableColumns(config: VariantConfig, hasActions: boolean) 
             const nextWidths = { ...colWidths, [col]: latestWidth };
             containerRef.current?.style.setProperty(
                 "--track-cols",
-                buildGridTemplate(config, nextWidths, hasActions)
+                buildGridTemplate(config, nextWidths)
             );
         };
 
@@ -61,7 +60,7 @@ export function useResizableColumns(config: VariantConfig, hasActions: boolean) 
         setColWidths((prev) => ({ ...prev, [col]: DEFAULT_WIDTHS[col] }));
     };
 
-    const gridTemplate = buildGridTemplate(config, colWidths, hasActions);
+    const gridTemplate = buildGridTemplate(config, colWidths);
 
     return {
         containerRef,

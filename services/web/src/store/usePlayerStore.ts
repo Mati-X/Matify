@@ -26,6 +26,7 @@ interface PlayerStore {
     duration: number;
     isMuted: boolean;
     setTrack: (track: Track, newQueue?: Track[]) => void;
+    addToQueue: (track: Track) => void;
     togglePlay: () => void;
     setVolume: (volume: number) => void;
     setProgress: (progress: number) => void;
@@ -140,6 +141,22 @@ export const usePlayerStore = create<PlayerStore>((set) => ({
             queueIndex: queueIndex !== -1 ? queueIndex : 0,
             isPlaying: true,
             currentTime: 0,
+        };
+    }),
+    addToQueue: (track) => set((state) => {
+        if (!state.currentTrack || state.queue.length === 0) {
+            return {
+                currentTrack: track,
+                queue: [track],
+                originalQueue: [track],
+                queueIndex: 0,
+                isPlaying: true,
+                currentTime: 0,
+            };
+        }
+        return {
+            queue: [...state.queue, track],
+            originalQueue: [...state.originalQueue, track],
         };
     }),
     togglePlay: () => set((state) => ({ isPlaying: !state.isPlaying })),

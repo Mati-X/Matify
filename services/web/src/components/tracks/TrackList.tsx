@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { useResizableColumns } from "../../hooks/useResizableColumns.ts";
 import { usePlayerStore } from "../../store/usePlayerStore.ts";
+import { TrackContextMenu } from "./TrackContextMenu.tsx";
 import { TrackListHeader } from "./TrackListHeader.tsx";
 import { TrackRow } from "./TrackRow.tsx";
 import { type TrackListItem, type TrackListVariant, VARIANT_CONFIG } from "./trackListConfig.ts";
@@ -11,20 +12,20 @@ interface TrackListProps {
     tracks?: TrackListItem[];
     variant?: TrackListVariant;
     renderActions?: (track: TrackListItem) => React.ReactNode;
-     color?: string;
+    color?: string;
 }
 
 function TrackList(props: TrackListProps) {
     const variant = props.variant ?? "default";
     const tracks = props.tracks ?? [];
     const config = VARIANT_CONFIG[variant];
-    const hasActions = Boolean(props.renderActions);
 
     const setTrack = usePlayerStore((state) => state.setTrack);
     const currentTrack = usePlayerStore((state) => state.currentTrack);
     const isPlaying = usePlayerStore((state) => state.isPlaying);
 
-    const { containerRef, gridTemplate, startResize, resetResize } = useResizableColumns(config, hasActions);
+    const [menu, setMenu] = useState<{ track: TrackListItem; x: number; y: number } | null>(null);
+    const { containerRef, gridTemplate, startResize, resetResize } = useResizableColumns(config, true);
 
     return (
         <div
@@ -35,7 +36,7 @@ function TrackList(props: TrackListProps) {
             {config.showLegend && (
                 <TrackListHeader
                     config={config}
-                    hasActions={hasActions}
+                    hasActions={true}
                     startResize={startResize}
                     resetResize={resetResize}
                 />
@@ -51,11 +52,14 @@ function TrackList(props: TrackListProps) {
                         isCurrent={currentTrack?.id === track.id}
                         isPlaying={isPlaying}
                         onPlay={() => setTrack(track, tracks)}
+                        onOpenMenu={(selectedTrack, x, y) => setMenu({ track: selectedTrack, x, y })}
                         renderActions={props.renderActions}
                         color={props.color}
                     />
                 ))}
             </div>
+
+            <TrackContextMenu menu={menu} tracks={tracks} onClose={() => setMenu(null)} />
         </div>
     );
 }
