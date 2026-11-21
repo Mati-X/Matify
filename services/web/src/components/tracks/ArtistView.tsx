@@ -24,7 +24,7 @@ export default function ArtistView({artistName } : {artistName: string} ) {
     const accentColor = firstTrack?.colorPalette?.vibrant ?? "#10b981"
 
 
-    return (<div>
+    return (<div className={'flex-1'}>
         <div className={'relative overflow-hidden h-[420px] p-8'}>
             <div className={'w-full h-full left-0 top-0 absolute inset-0 pointer-events-none'}>
                     <img src={firstTrack?.coverUrl ?? undefined}  alt={firstTrack?.title} className="w-full h-full object-cover scale-125 opacity-45" ></img>

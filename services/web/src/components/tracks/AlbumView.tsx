@@ -31,8 +31,8 @@ export default function AlbumView({albumName } : {albumName: string} ) {
     const accentColor = firstTrack?.colorPalette?.vibrant ?? "#10b981"
 
 
-    return (<div>
-        <div className={'relative overflow-hidden h-[420px] p-8'}>
+    return (<div className={'flex-1'}>
+        <div className={'relative overflow-hidden h-105  p-8'}>
             <div className={'absolute w-full h-full left-0 top-0 blur-3xl inset-0 pointer-events-none'}>
                 {firstTrack?.motion_cover_url  ? <video src={firstTrack.motion_cover_url} autoPlay loop muted playsInline className="w-full h-full object-cover blur-2xl scale-125 opacity-50" />:
                     <img src={firstTrack?.coverUrl ?? undefined}  alt={firstTrack?.title} className="w-full h-full object-cover blur-2xl scale-125 opacity-45" ></img>}

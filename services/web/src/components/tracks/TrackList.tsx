@@ -11,7 +11,7 @@ export type { TrackListItem, TrackListVariant } from "./trackListConfig.ts";
 interface TrackListProps {
     tracks?: TrackListItem[];
     variant?: TrackListVariant;
-    renderActions?: (track: TrackListItem) => React.ReactNode;
+    renderActions?: (track: TrackListItem, index: number) => React.ReactNode;
     color?: string;
 }
 
@@ -31,7 +31,7 @@ function TrackList(props: TrackListProps) {
         <div
             ref={containerRef}
             style={{ "--track-cols": gridTemplate } as React.CSSProperties}
-            className="flex flex-col flex-1 select-none m-12 "
+            className={`flex flex-col flex-1 select-none ${variant === "queue" ? "px-2" : "m-12"}`}
         >
             {config.showLegend && (
                 <TrackListHeader

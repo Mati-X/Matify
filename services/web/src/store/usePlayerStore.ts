@@ -27,6 +27,11 @@ interface PlayerStore {
     isMuted: boolean;
     setTrack: (track: Track, newQueue?: Track[]) => void;
     addToQueue: (track: Track) => void;
+    removeFromQueue: (index: number) => void;
+    removeFromUserQueue: (index: number) => void;
+    clearUserQueue: () => void;
+    playFromUserQueue: (index: number) => void;
+    userQueue: Track[];
     togglePlay: () => void;
     setVolume: (volume: number) => void;
     setProgress: (progress: number) => void;
@@ -64,6 +69,7 @@ export const usePlayerStore = create<PlayerStore>((set) => ({
     seekRequest: null,
     isShuffled: false,
     originalQueue: [],
+    userQueue: [],
     repeatMode: "off",
     cycleRepeatMode: () => set((state) => {
         const order: RepeatMode[] = ["off", "all", "one"];
@@ -71,6 +77,15 @@ export const usePlayerStore = create<PlayerStore>((set) => ({
         return { repeatMode: nextMode };
     }),
     handleTrackEnded: () => set((state) => {
+        if (state.userQueue.length > 0) {
+            const [nextTrack, ...restUserQueue] = state.userQueue;
+            return {
+                currentTrack: nextTrack,
+                userQueue: restUserQueue,
+                currentTime: 0,
+                isPlaying: true,
+            };
+        }
         if (state.queue.length === 0) return state;
         const isLast = state.queueIndex >= state.queue.length - 1;
         if (state.repeatMode === "off" && isLast) {
@@ -155,16 +170,49 @@ export const usePlayerStore = create<PlayerStore>((set) => ({
             };
         }
         return {
-            queue: [...state.queue, track],
-            originalQueue: [...state.originalQueue, track],
+            userQueue: [...state.userQueue, track],
+        };
+    }),
+    removeFromUserQueue: (index) => set((state) => ({
+        userQueue: state.userQueue.filter((_, i) => i !== index),
+    })),
+    clearUserQueue: () => set({ userQueue: [] }),
+    playFromUserQueue: (index) => set((state) => {
+        const selected = state.userQueue[index];
+        if (!selected) return state;
+        return {
+            currentTrack: selected,
+            userQueue: state.userQueue.slice(index + 1),
+            currentTime: 0,
+            isPlaying: true,
+        };
+    }),
+    removeFromQueue: (index) => set((state) => {
+        const removed = state.queue[index];
+        if (!removed) return state;
+        const newQueue = state.queue.filter((_, i) => i !== index);
+        const nextQueueIndex = index < state.queueIndex ? state.queueIndex - 1 : state.queueIndex;
+        return {
+            queue: newQueue,
+            originalQueue: state.originalQueue.filter((t) => t.id !== removed.id),
+            queueIndex: Math.max(0, Math.min(nextQueueIndex, Math.max(0, newQueue.length - 1))),
         };
     }),
     togglePlay: () => set((state) => ({ isPlaying: !state.isPlaying })),
     setVolume: (volume) => set({ volume }),
     setProgress: (progress) => set({ currentTime: progress }),
     nextTrack: () => set((state) => {
+        if (state.userQueue.length > 0) {
+            const [nextTrack, ...restUserQueue] = state.userQueue;
+            return {
+                currentTrack: nextTrack,
+                userQueue: restUserQueue,
+                currentTime: 0,
+                isPlaying: true,
+            };
+        }
         if (state.queue.length === 0) return state;
-        const nextIndex = (state.queueIndex + 1) % state.queue.length; // zapętla do 0 na końcu
+        const nextIndex = (state.queueIndex + 1) % state.queue.length;
         return {
             queueIndex: nextIndex,
             currentTrack: state.queue[nextIndex],

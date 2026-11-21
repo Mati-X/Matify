@@ -18,9 +18,12 @@ interface UIStore {
     closeLyrics: () => void;
     tabs: Tab[];
     activeTabId: string;
+    isQueueOpen: boolean;
     openTab: (tab: Tab) => void;
     closeTab: (tabId: string) => void;
     setActiveTab: (tabId: string) => void;
+    toogleQueue: () => void;
+    closeQueue: () => void;
 }
 
 export const useUIStore = create<UIStore>((set) => ({
@@ -35,4 +38,7 @@ export const useUIStore = create<UIStore>((set) => ({
     openTab: (tab: Tab) => set((s) => ({tabs: [...s.tabs, tab]})),
     closeTab: (tabId: string) => set((s) => ({tabs: s.tabs.filter((tab) => tab.id !== tabId)})),
     setActiveTab: (tabId: string) => set({activeTabId: tabId}),
+    toogleQueue: () => set((s) => ({isQueueOpen: !s.isQueueOpen})),
+    closeQueue: () => set({isQueueOpen: false}),
+    isQueueOpen: false,
 }));

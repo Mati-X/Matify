@@ -8,9 +8,11 @@ import LyricsView from "./components/player/LyricsView.tsx";
 import AlbumView from "./components/tracks/AlbumView.tsx";
 import HomeView from "./components/tracks/HomeView.tsx";
 import ArtistView from "./components/tracks/ArtistView.tsx";
+import QueueView from "./components/player/QueueView.tsx";
 
 
-function renderTabContent(tab: Tab) {
+function renderTabContent(tab: Tab | undefined) {
+     if (!tab) return null;
     switch (tab.type) {
         case "home":
             return <HomeView/>;
@@ -26,6 +28,7 @@ function renderTabContent(tab: Tab) {
 function App() {
     const isSearching = useUIStore((s) => s.isSearching);
     const isLyricsOpen = useUIStore((s) => s.isLyricsOpen);
+    const isQueueOpen = useUIStore((s) => s.isQueueOpen);
 
     const tabs = useUIStore((s) => s.tabs);
     const activeTabId = useUIStore((s) => s.activeTabId);
@@ -38,16 +41,18 @@ function App() {
             <div className="flex flex-1 overflow-hidden">
                 <SideBar/>
                 <div className="flex flex-col flex-1 min-w-0 relative">
-                    <TabBar />
-                    <main className="flex-1 overflow-y-auto">
+                    <TabBar/>
+                    <main className="flex-1 flex overflow-y-auto">
                         {renderTabContent(activeTab)}
+
                     </main>
 
-                    {isSearching && <SearchView />}
+                    {isSearching && <SearchView/>}
                 </div>
+                {isQueueOpen && <QueueView/>}
             </div>
             <PlayerBar/>
-            {isLyricsOpen && <LyricsView />}
+            {isLyricsOpen && <LyricsView/>}
         </div>
     );
 }

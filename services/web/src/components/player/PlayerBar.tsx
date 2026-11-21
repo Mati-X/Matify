@@ -4,6 +4,7 @@ import { Controls } from "./Controls";
 import { ProgressBar } from "./ProgressBar";
 import { VolumeControl } from "./VolumeControl";
 import LyricsButton from "./LyricsButton.tsx";
+import QueueButton from "./QueueButton.tsx";
 
 export function PlayerBar() {
   const currentTrack = usePlayerStore((state) => state.currentTrack);
@@ -48,6 +49,7 @@ export function PlayerBar() {
               isMuted={volume === 0}
           />
           <LyricsButton/>
+           <QueueButton/>
         </div>
       </div>
     </div>

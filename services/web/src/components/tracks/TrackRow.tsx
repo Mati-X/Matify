@@ -13,7 +13,7 @@ interface TrackRowProps {
     isPlaying: boolean;
     onPlay: () => void;
     onOpenMenu: (track: TrackListItem, x: number, y: number) => void;
-    renderActions?: (track: TrackListItem) => React.ReactNode;
+    renderActions?: (track: TrackListItem, index: number) => React.ReactNode;
     color?: string;
 }
 
@@ -139,7 +139,7 @@ export function TrackRow({
             )}
 
             <div onClick={(e) => e.stopPropagation()} className="flex items-center justify-end gap-2">
-                {renderActions?.(track)}
+                {renderActions?.(track,index)}
                 <button
                     type="button"
                     aria-label={`More actions for ${track.title}`}
