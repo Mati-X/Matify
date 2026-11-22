@@ -9,6 +9,8 @@ import AlbumView from "./components/tracks/AlbumView.tsx";
 import HomeView from "./components/tracks/HomeView.tsx";
 import ArtistView from "./components/tracks/ArtistView.tsx";
 import QueueView from "./components/player/QueueView.tsx";
+import AuthModal from "./components/auth/AuthModal.tsx";
+import {useAuthStore} from "./store/useAuthStore.ts";
 
 
 function renderTabContent(tab: Tab | undefined) {
@@ -29,6 +31,7 @@ function App() {
     const isSearching = useUIStore((s) => s.isSearching);
     const isLyricsOpen = useUIStore((s) => s.isLyricsOpen);
     const isQueueOpen = useUIStore((s) => s.isQueueOpen);
+    const isAuthModalOpen = useAuthStore((s) => s.isAuthModalOpen);
 
     const tabs = useUIStore((s) => s.tabs);
     const activeTabId = useUIStore((s) => s.activeTabId);
@@ -53,6 +56,7 @@ function App() {
             </div>
             <PlayerBar/>
             {isLyricsOpen && <LyricsView/>}
+            {isAuthModalOpen && <AuthModal/>}
         </div>
     );
 }

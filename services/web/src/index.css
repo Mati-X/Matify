@@ -3,3 +3,14 @@
 body {
   @apply bg-neutral-950 text-white antialiased overflow-x-hidden;
 }
+
+dialog:modal {
+  overscroll-behavior: contain;
+}
+
+dialog::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
+  background-color: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(6px);
+}

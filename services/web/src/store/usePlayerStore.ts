@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { useAuthStore } from './useAuthStore.ts'
 
 export interface Track {
     id: string;
@@ -121,6 +122,10 @@ export const usePlayerStore = create<PlayerStore>((set) => ({
         };
     }),
     playShuffled: (tracks) => {
+        if (!useAuthStore.getState().token) {
+            useAuthStore.getState().openAuthModal();
+            return;
+        }
         if (tracks.length === 0) return;
         const shuffled = shuffleTracks(tracks);
         set({
@@ -134,6 +139,10 @@ export const usePlayerStore = create<PlayerStore>((set) => ({
         });
     },
     setTrack: (track, newQueue) => set((state) => {
+        if (!useAuthStore.getState().token) {
+            useAuthStore.getState().openAuthModal();
+            return state;
+        }
         const originalQueue = newQueue || [track];
         if (state.isShuffled) {
             const rest = originalQueue.filter((t) => t.id !== track.id);
@@ -159,6 +168,10 @@ export const usePlayerStore = create<PlayerStore>((set) => ({
         };
     }),
     addToQueue: (track) => set((state) => {
+        if (!useAuthStore.getState().token) {
+            useAuthStore.getState().openAuthModal();
+            return state;
+        }
         if (!state.currentTrack || state.queue.length === 0) {
             return {
                 currentTrack: track,
