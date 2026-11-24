@@ -1,3 +1,4 @@
+import {useEffect} from "react";
 import { AudioEngine } from "./components/player/AudioEngine";
 import PlayerBar from "./components/player/PlayerBar";
 import SideBar from "./components/layout/SideBar.tsx";
@@ -11,6 +12,8 @@ import ArtistView from "./components/tracks/ArtistView.tsx";
 import QueueView from "./components/player/QueueView.tsx";
 import AuthModal from "./components/auth/AuthModal.tsx";
 import {useAuthStore} from "./store/useAuthStore.ts";
+import {useLibraryStore} from "./store/useLibraryStore.ts";
+import FavoritesView from "./components/tracks/FavoritesView.tsx";
 
 
 function renderTabContent(tab: Tab | undefined) {
@@ -22,8 +25,10 @@ function renderTabContent(tab: Tab | undefined) {
             return <AlbumView albumName={tab.entityId ?? ''}/>
         case "artist":
              return <ArtistView artistName={tab.entityId ?? ''}/>
+        case "favorites":
+            return <FavoritesView/>
         default :
-            return "es"
+            return null
     }
 }
 
@@ -32,11 +37,19 @@ function App() {
     const isLyricsOpen = useUIStore((s) => s.isLyricsOpen);
     const isQueueOpen = useUIStore((s) => s.isQueueOpen);
     const isAuthModalOpen = useAuthStore((s) => s.isAuthModalOpen);
+    const token = useAuthStore((s) => s.token);
+    const fetchFavorites = useLibraryStore((s) => s.fetchFavorites);
 
     const tabs = useUIStore((s) => s.tabs);
     const activeTabId = useUIStore((s) => s.activeTabId);
 
     const activeTab: Tab | undefined = tabs.find((tab) => tab.id === activeTabId);
+
+    useEffect(() => {
+        if (token) {
+            fetchFavorites();
+        }
+    }, [token, fetchFavorites]);
 
     return (
         <div className="h-screen bg-neutral-950 flex flex-col text-white overflow-hidden">

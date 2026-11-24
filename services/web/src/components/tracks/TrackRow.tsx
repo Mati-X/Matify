@@ -1,9 +1,11 @@
 import React from "react";
-import { MoreHorizontal, Play, Volume2 } from "lucide-react";
+import {Heart, MoreHorizontal, Play, Volume2} from "lucide-react";
 import { useUIStore } from "../../store/useUIStore.ts";
 import { formatDate, formatDuration } from "../../utils/trackFormatters.ts";
 import { ArtistLinks } from "./ArtistLinks.tsx";
 import { type TrackListItem, type VariantConfig } from "./trackListConfig.ts";
+import {useLibraryStore} from "../../store/useLibraryStore.ts";
+import {useAuthStore} from "../../store/useAuthStore.ts";
 
 interface TrackRowProps {
     track: TrackListItem;
@@ -29,6 +31,11 @@ export function TrackRow({
     color
 }: TrackRowProps) {
     const openTab = useUIStore((state) => state.openTab);
+    const requireAuth = useAuthStore((s) => s.requireAuth);
+    const favoriteIds = useLibraryStore((state) => state.favoriteIds)
+    const isLiked = favoriteIds.includes(track.id)
+
+    const toggleFavorite = useLibraryStore((state) => state.toggleFavorite);
 
     return (
         <div
@@ -138,8 +145,22 @@ export function TrackRow({
                 </span>
             )}
 
+
+
             <div onClick={(e) => e.stopPropagation()} className="flex items-center justify-end gap-2">
                 {renderActions?.(track,index)}
+                <button
+                    type="button"
+                    aria-label={isLiked ? "Remove from favorites" : "Add to favorites"}
+                    onClick={() => requireAuth(() => toggleFavorite(track.id))}
+                    className={`p-1.5 rounded-md hover:bg-white/10 transition-opacity ${
+                        isLiked
+                            ? "text-emerald-400 opacity-100"
+                            : "text-neutral-400 hover:text-white opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                    }`}
+                >
+                    <Heart className="w-4 h-4" fill={isLiked ? "currentColor" : "none"} />
+                </button>
                 <button
                     type="button"
                     aria-label={`More actions for ${track.title}`}
