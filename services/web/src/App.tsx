@@ -14,6 +14,7 @@ import AuthModal from "./components/auth/AuthModal.tsx";
 import {useAuthStore} from "./store/useAuthStore.ts";
 import {useLibraryStore} from "./store/useLibraryStore.ts";
 import FavoritesView from "./components/tracks/FavoritesView.tsx";
+import PlaylistView from "./components/tracks/PlaylistView.tsx";
 
 
 function renderTabContent(tab: Tab | undefined) {
@@ -27,6 +28,8 @@ function renderTabContent(tab: Tab | undefined) {
              return <ArtistView artistName={tab.entityId ?? ''}/>
         case "favorites":
             return <FavoritesView/>
+        case "playlist":
+            return <PlaylistView playlistId={tab.entityId ?? ''}/>
         default :
             return null
     }
@@ -39,6 +42,7 @@ function App() {
     const isAuthModalOpen = useAuthStore((s) => s.isAuthModalOpen);
     const token = useAuthStore((s) => s.token);
     const fetchFavorites = useLibraryStore((s) => s.fetchFavorites);
+    const fetchPlaylists = useLibraryStore((s) => s.fetchPlaylists);
 
     const tabs = useUIStore((s) => s.tabs);
     const activeTabId = useUIStore((s) => s.activeTabId);
@@ -50,6 +54,12 @@ function App() {
             fetchFavorites();
         }
     }, [token, fetchFavorites]);
+
+    useEffect( () => {
+         if (token) {
+            fetchPlaylists();
+        }
+    }, [token, fetchPlaylists]);
 
     return (
         <div className="h-screen bg-neutral-950 flex flex-col text-white overflow-hidden">

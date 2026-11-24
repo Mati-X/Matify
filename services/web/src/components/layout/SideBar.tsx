@@ -1,6 +1,7 @@
-import {LogOut, Settings, User} from "lucide-react";
+import {LogOut, Plus, Settings, User} from "lucide-react";
 import {useUIStore} from "../../store/useUIStore.ts";
 import {useAuthStore} from "../../store/useAuthStore.ts";
+import {useLibraryStore} from "../../store/useLibraryStore.ts";
 
 function SideBar() {
     const openSearch = useUIStore((s) => s.openSearch);
@@ -9,6 +10,17 @@ function SideBar() {
     const openAuthModal = useAuthStore((s) => s.openAuthModal);
     const logout = useAuthStore((s) => s.logout);
     const requireAuth = useAuthStore((s) => s.requireAuth);
+    const playlists = useLibraryStore((s) => s.playlists);
+    const createPlaylist = useLibraryStore((s) => s.createPlaylist);
+
+    const handleCreatePlaylist = () => {
+        requireAuth(() => {
+            const title = window.prompt("Playlist name:");
+            if (title?.trim()) {
+                createPlaylist(title.trim());
+            }
+        });
+    };
 
     return (
         <aside className="w-72 shrink-0 h-full bg-neutral-950 border-r border-neutral-800/80 flex flex-col justify-between p-6 select-none">
@@ -31,8 +43,32 @@ function SideBar() {
                         Favorites
                     </p>
                 </div>
-                <div className={'flex-col flex gap-4 text-base text-neutral-400'}>
-                    {[1,2,3,4,5].map((_, index) => <p key={index} className={'cursor-pointer hover:text-white transition-colors'}>Playlist {index + 1}</p>)}
+                <div className={'flex-col flex gap-3 text-base text-neutral-400'}>
+                    <div className={'flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-neutral-500'}>
+                        <span>Playlists</span>
+                        <button
+                            type={'button'}
+                            onClick={handleCreatePlaylist}
+                            title={'Create playlist'}
+                            className={'p-1 hover:text-white transition-colors cursor-pointer'}
+                        >
+                            <Plus className={'w-4 h-4'}/>
+                        </button>
+                    </div>
+                    {playlists.map((playlist) => (
+                        <p
+                            key={playlist.id}
+                            onClick={() => openTab({
+                                id: `playlist:${playlist.id}`,
+                                title: playlist.title,
+                                type: 'playlist',
+                                entityId: playlist.id,
+                            })}
+                            className={'truncate cursor-pointer hover:text-white transition-colors'}
+                        >
+                            {playlist.title}
+                        </p>
+                    ))}
                 </div>
             </div>
             <div className={'flex items-center justify-between text-base text-neutral-300'}>
