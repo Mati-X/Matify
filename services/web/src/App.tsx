@@ -16,6 +16,7 @@ import {useLibraryStore} from "./store/useLibraryStore.ts";
 import FavoritesView from "./components/tracks/FavoritesView.tsx";
 import PlaylistView from "./components/tracks/PlaylistView.tsx";
 import UserView from "./components/tracks/UserView.tsx";
+import SettingsView from "./components/settings/SettingsView.tsx";
 
 
 function renderTabContent(tab: Tab | undefined) {
@@ -33,6 +34,8 @@ function renderTabContent(tab: Tab | undefined) {
             return <PlaylistView playlistId={tab.entityId ?? ''}/>
         case "user":
             return <UserView userId={tab.entityId ?? ''} username={tab.title}/>
+        case "settings":
+            return <SettingsView/>
         default :
             return null
     }
