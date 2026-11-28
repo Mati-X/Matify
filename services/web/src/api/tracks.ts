@@ -15,3 +15,7 @@ export const getLyrics = async (trackId: string): Promise<LyricLine[]> => {
     const { data } = await api.get<{ parsed: LyricLine[] }>(`/tracks/${trackId}/lyrics`);
     return data.parsed || [];
 };
+
+export const recordPlay = async (trackId: string): Promise<void> => {
+    await api.post(`/tracks/${trackId}/play`);
+};

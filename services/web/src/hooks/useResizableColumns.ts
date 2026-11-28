@@ -19,7 +19,7 @@ function buildGridTemplate(
     if (config.showAlbum) cols.push(`${widths.album}px`);
     if (config.showAddedBy) cols.push(`${widths.addedBy}px`);
     if (config.showDateAdded) cols.push(`${widths.dateAdded}px`);
-    cols.push("auto");
+    cols.push("4.5rem");
     cols.push("4rem");
     return cols.join(" ");
 }

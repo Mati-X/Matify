@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
 import { usePlayerStore } from "../../store/usePlayerStore";
+import { useAuthStore } from "../../store/useAuthStore";
+import { recordPlay } from "../../api/tracks";
 import Hls from "hls.js";
 
 export const AudioEngine = () => {
@@ -14,6 +16,11 @@ export const AudioEngine = () => {
   const handleTrackEnded = usePlayerStore((state) => state.handleTrackEnded);
   const setProgress = usePlayerStore((state) => state.setProgress);
   const seekRequest = usePlayerStore((state) => state.seekRequest);
+
+  useEffect(() => {
+    if (!currentTrack?.id || !useAuthStore.getState().token) return;
+    recordPlay(currentTrack.id).catch(() => {});
+  }, [currentTrack?.id]);
 
   // Inicjalizacja strumienia HLS / natywnego Safari po zmianie utworu
   useEffect(() => {

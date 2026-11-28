@@ -15,6 +15,7 @@ import {useAuthStore} from "./store/useAuthStore.ts";
 import {useLibraryStore} from "./store/useLibraryStore.ts";
 import FavoritesView from "./components/tracks/FavoritesView.tsx";
 import PlaylistView from "./components/tracks/PlaylistView.tsx";
+import UserView from "./components/tracks/UserView.tsx";
 
 
 function renderTabContent(tab: Tab | undefined) {
@@ -30,6 +31,8 @@ function renderTabContent(tab: Tab | undefined) {
             return <FavoritesView/>
         case "playlist":
             return <PlaylistView playlistId={tab.entityId ?? ''}/>
+        case "user":
+            return <UserView userId={tab.entityId ?? ''} username={tab.title}/>
         default :
             return null
     }
