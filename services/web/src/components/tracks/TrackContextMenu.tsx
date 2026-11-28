@@ -1,9 +1,12 @@
-import React, { useEffect, useRef } from "react";
-import { Disc3, ListPlus, Play, User } from "lucide-react";
+import React, {useEffect, useRef, useState} from "react";
+import { ChevronRight, Disc3, ListPlus, Play, User } from "lucide-react";
 import { usePlayerStore } from "../../store/usePlayerStore.ts";
 import { useUIStore } from "../../store/useUIStore.ts";
+import { useAuthStore } from "../../store/useAuthStore.ts";
 import { parseArtists } from "../../utils/trackFormatters.ts";
 import { type TrackListItem } from "./trackListConfig.ts";
+import {useLibraryStore} from "../../store/useLibraryStore.ts";
+import { addTrackToPlaylist } from "../../api/playlists.ts";
 
 interface TrackContextMenuProps {
     menu: { track: TrackListItem; x: number; y: number } | null;
@@ -16,8 +19,12 @@ export function TrackContextMenu({ menu, tracks, onClose }: TrackContextMenuProp
     const setTrack = usePlayerStore((state) => state.setTrack);
     const addToQueue = usePlayerStore((state) => state.addToQueue);
     const openTab = useUIStore((state) => state.openTab);
+    const requireAuth = useAuthStore((state) => state.requireAuth);
+    const [submenuOpen, setSubmenuOpen] = useState<boolean>(false);
+    const playlists = useLibraryStore((state) => state.playlists);
 
     useEffect(() => {
+        setSubmenuOpen(false);
         const el = popoverRef.current;
         if (!el) return;
 
@@ -68,7 +75,7 @@ export function TrackContextMenu({ menu, tracks, onClose }: TrackContextMenuProp
             }}
             onKeyDown={handleKeyDown}
             style={{ position: "fixed", left: `${left}px`, top: `${top}px`, inset: "unset", margin: 0 }}
-            className="w-56 rounded-xl bg-neutral-900/95 backdrop-blur-xl border border-white/10 shadow-2xl p-1.5 text-sm text-neutral-200"
+            className="w-56 overflow-visible rounded-xl bg-neutral-900/95 backdrop-blur-xl border border-white/10 shadow-2xl p-1.5 text-sm text-neutral-200"
         >
             {menu && (
                 <div role="menu" className="flex flex-col gap-0.5">
@@ -90,6 +97,63 @@ export function TrackContextMenu({ menu, tracks, onClose }: TrackContextMenuProp
                         <ListPlus className="w-4 h-4 text-neutral-400" />
                         <span>Add to queue</span>
                     </button>
+                    <div
+                        className="relative"
+                        onMouseEnter={() => setSubmenuOpen(true)}
+                        onMouseLeave={() => setSubmenuOpen(false)}
+                    >
+                        <button
+                            type="button"
+                            role="menuitem"
+                            aria-haspopup="menu"
+                            aria-expanded={submenuOpen}
+                            onClick={() => setSubmenuOpen((prev) => !prev)}
+                            className="w-full flex items-center justify-between gap-2.5 px-3 py-2 rounded-lg hover:bg-white/10 focus-visible:bg-white/10 focus-visible:outline-none text-left transition-colors"
+                        >
+                            <span className="flex items-center gap-2.5">
+                                <ListPlus className="w-4 h-4 text-neutral-400" />
+                                <span>Add to playlist</span>
+                            </span>
+                            <ChevronRight className="w-4 h-4 text-neutral-400" />
+                        </button>
+                        {submenuOpen && (
+                            <div
+                                className={`absolute top-0 z-50 ${
+                                    left + 440 > window.innerWidth ? "right-full pr-1" : "left-full pl-1"
+                                }`}
+                            >
+                                <div className="flex flex-col gap-0.5 w-52 max-h-64 overflow-y-auto rounded-xl bg-neutral-900/95 backdrop-blur-xl border border-white/10 shadow-2xl p-1.5">
+                                    {playlists.length > 0 ? (
+                                        playlists.map((playlist) => (
+                                            <button
+                                                key={playlist.id}
+                                                type="button"
+                                                role="menuitem"
+                                                onClick={() =>
+                                                    runAction(() =>
+                                                        requireAuth(() => {
+                                                            addTrackToPlaylist(
+                                                                playlist.id,
+                                                                menu.track.id,
+                                                                Math.floor(Date.now() / 1000)
+                                                            );
+                                                        })
+                                                    )
+                                                }
+                                                className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/10 focus-visible:bg-white/10 focus-visible:outline-none text-left transition-colors"
+                                            >
+                                                <span className="truncate">{playlist.title}</span>
+                                            </button>
+                                        ))
+                                    ) : (
+                                        <span className="px-3 py-2 text-xs text-neutral-500">
+                                            No playlists yet
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                     {(menu.track.album || firstArtist) && <hr className="my-1 border-white/10" />}
                     {menu.track.album && (
                         <button
