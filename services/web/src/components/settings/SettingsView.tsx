@@ -6,12 +6,8 @@ import {
     type EqualizerPreset,
     getEqualizerPresets,
 } from "../../api/equalizer.ts";
-import { EQ_BANDS, useEqualizerStore } from "../../store/useEqualizerStore.ts";
-
-function formatBandLabel(band: string) {
-    const hz = Number(band);
-    return hz >= 1000 ? `${hz / 1000}k` : `${hz}`;
-}
+import { useEqualizerStore } from "../../store/useEqualizerStore.ts";
+import EqCurveGraph from "./EqCurveGraph.tsx";
 
 export default function SettingsView() {
     const enabled = useEqualizerStore((s) => s.enabled);
@@ -92,38 +88,38 @@ export default function SettingsView() {
                     </button>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
-                    {presets.map((preset) => {
-                        const isActive = activePresetId === preset.id;
+                <div className="flex items-center gap-2">
+                    <select
+                        name="preset"
+                        aria-label="Equalizer preset"
+                        value={activePresetId ?? ""}
+                        onChange={(e) => {
+                            const selected = presets.find((p) => p.id === e.target.value);
+                            if (selected) applyPreset(selected);
+                        }}
+                        className="matify-select min-w-56 px-4 py-2 rounded-xl bg-neutral-900 border border-white/10 text-sm text-white focus:outline-none focus:border-emerald-400 cursor-pointer"
+                    >
+                        <option value="" disabled>Custom</option>
+                        {presets.map((preset) => (
+                            <option key={preset.id} value={preset.id}>
+                                {preset.name}
+                            </option>
+                        ))}
+                    </select>
+                    {(() => {
+                        const activePreset = presets.find((p) => p.id === activePresetId);
+                        if (!activePreset || activePreset.isDefault) return null;
                         return (
-                            <div
-                                key={preset.id}
-                                className={`flex items-center rounded-full border transition-colors ${
-                                    isActive
-                                        ? "bg-emerald-500/20 border-emerald-400 text-emerald-300"
-                                        : "bg-neutral-900 border-white/10 text-neutral-300 hover:border-white/25"
-                                }`}
+                            <button
+                                type="button"
+                                onClick={() => handleDeletePreset(activePreset.id)}
+                                aria-label={`Delete ${activePreset.name}`}
+                                className="p-2 rounded-xl bg-neutral-900 border border-white/10 text-neutral-400 hover:text-red-400 hover:border-red-400/40 transition-colors cursor-pointer"
                             >
-                                <button
-                                    type="button"
-                                    onClick={() => applyPreset(preset)}
-                                    className="px-4 py-1.5 text-sm font-medium cursor-pointer"
-                                >
-                                    {preset.name}
-                                </button>
-                                {!preset.isDefault && (
-                                    <button
-                                        type="button"
-                                        onClick={() => handleDeletePreset(preset.id)}
-                                        aria-label={`Delete ${preset.name}`}
-                                        className="pr-3 text-neutral-400 hover:text-red-400 transition-colors cursor-pointer"
-                                    >
-                                        <Trash2 className="w-3.5 h-3.5" />
-                                    </button>
-                                )}
-                            </div>
+                                <Trash2 className="w-4 h-4" />
+                            </button>
                         );
-                    })}
+                    })()}
                 </div>
             </section>
 
@@ -144,33 +140,13 @@ export default function SettingsView() {
                         {preamp > 0 ? `+${preamp.toFixed(1)}` : preamp.toFixed(1)} dB
                     </span>
                 </div>
+                <EqCurveGraph
+                    gains={gains}
+                    enabled={enabled}
+                    activePresetId={activePresetId}
+                    onChangeBand={setBandGain}
+                />
 
-                <div className="grid grid-cols-10 gap-2 pt-2">
-                    {EQ_BANDS.map((band) => {
-                        const value = gains[band] ?? 0;
-                        return (
-                            <div key={band} className="flex flex-col items-center gap-3">
-                                <span className="text-xs tabular-nums text-neutral-400">
-                                    {value > 0 ? `+${value.toFixed(1)}` : value.toFixed(1)}
-                                </span>
-                                <input
-                                    type="range"
-                                    min={-12}
-                                    max={12}
-                                    step={0.5}
-                                    disabled={!enabled}
-                                    value={value}
-                                    onChange={(e) => setBandGain(band, Number(e.target.value))}
-                                    style={{ writingMode: "vertical-lr", direction: "rtl" }}
-                                    className="h-44 accent-emerald-400 cursor-pointer"
-                                />
-                                <span className="text-xs font-medium text-neutral-300">
-                                    {formatBandLabel(band)}
-                                </span>
-                            </div>
-                        );
-                    })}
-                </div>
             </section>
 
             <form onSubmit={handleSavePreset} className="flex items-center gap-3">
