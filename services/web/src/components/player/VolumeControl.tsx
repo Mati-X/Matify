@@ -1,4 +1,5 @@
 import { Volume2, VolumeX, Volume1 } from "lucide-react";
+import { CustomSlider } from "../ui/CustomSlider";
 
 interface VolumeProps {
   volume: number;
@@ -20,14 +21,17 @@ export function VolumeControl({ volume, onVolumeChange, isMuted }: VolumeProps) 
   return (
     <div className="flex items-center justify-end gap-3 w-64 min-w-[200px]">
       {renderVolumeIcon()}
-      <input
-        type="range"
+      <CustomSlider
+        ariaLabel="Volume"
+        size="sm"
         min={0}
         max={1}
         step={0.01}
         value={volume}
-        onChange={(e) => onVolumeChange(Number(e.target.value))}
-        className="w-24 h-1 bg-neutral-800 accent-neutral-200 cursor-pointer rounded-lg"
+        active={!isMuted && volume > 0}
+        onChange={onVolumeChange}
+        className="w-28"
+        ringClassName="ring-neutral-950"
       />
       <span className="text-xs text-neutral-400 font-mono w-9 text-right">
         {Math.round(volume * 100)}%

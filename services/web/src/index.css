@@ -14,36 +14,3 @@ dialog::backdrop {
   background-color: rgba(0, 0, 0, 0.72);
   backdrop-filter: blur(6px);
 }
-
-.matify-select,
-.matify-select::picker(select) {
-  appearance: base-select;
-}
-
-.matify-select::picker(select) {
-  background-color: #171717;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 0.75rem;
-  padding: 0.375rem;
-  color: #e5e5e5;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.55);
-}
-
-.matify-select::picker-icon {
-  color: #a3a3a3;
-}
-
-.matify-select option {
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.5rem;
-  color: #e5e5e5;
-  cursor: pointer;
-}
-
-.matify-select option:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.matify-select option::checkmark {
-  color: #34d399;
-}

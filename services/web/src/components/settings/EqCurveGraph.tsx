@@ -56,10 +56,10 @@ function EqCurveGraph({ gains, enabled, activePresetId, onChangeBand }: EqCurveG
     }, [gains, enabled, activePresetId]);
 
     const width = 800;
-    const height = 180;
+    const height = 220;
     const padX = 24;
     const midY = height / 2;
-    const maxOffsetY = midY - 16;
+    const maxOffsetY = midY - 22;
 
     const points = EQ_BANDS.map((band, index) => {
         const db = displayGains[band] ?? 0;
@@ -88,7 +88,7 @@ function EqCurveGraph({ gains, enabled, activePresetId, onChangeBand }: EqCurveG
     const areaPath = `${linePath} L ${points[points.length - 1].x} ${height} L ${points[0].x} ${height} Z`;
 
     const handleBandDrag = (band: string) => (e: React.PointerEvent<SVGCircleElement>) => {
-        if (!enabled || !onChangeBand || !svgRef.current) return;
+        if (!onChangeBand || !svgRef.current) return;
         e.preventDefault();
 
         const updateFromPointer = (clientY: number) => {
@@ -113,7 +113,7 @@ function EqCurveGraph({ gains, enabled, activePresetId, onChangeBand }: EqCurveG
     };
 
     return (
-        <svg ref={svgRef} viewBox="0 0 800 180" className="w-full h-44 select-none overflow-visible">
+        <svg ref={svgRef} viewBox="0 0 800 220" className="w-full h-64 select-none overflow-visible">
             <defs>
                 <linearGradient id="eqCurveGraphGradient" x1="0%" y1="0%" x2="0%" y2="100%">
                     <stop offset="0%" stopColor={enabled ? "#10b981" : "#737373"} stopOpacity={0.35} />
@@ -141,10 +141,8 @@ function EqCurveGraph({ gains, enabled, activePresetId, onChangeBand }: EqCurveG
                     cy={point.y}
                     r={5}
                     onPointerDown={handleBandDrag(point.band)}
-                    className={`transition-colors ${
-                        enabled
-                            ? "fill-emerald-400 stroke-neutral-950 stroke-2 cursor-ns-resize hover:r-6"
-                            : "fill-neutral-500 stroke-neutral-950 stroke-2"
+                    className={`transition-colors cursor-ns-resize hover:r-6 stroke-neutral-950 stroke-2 ${
+                        enabled ? "fill-emerald-400" : "fill-neutral-500"
                     }`}
                 />
             ))}

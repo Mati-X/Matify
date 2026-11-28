@@ -7,6 +7,8 @@ import {
     getEqualizerPresets,
 } from "../../api/equalizer.ts";
 import { useEqualizerStore } from "../../store/useEqualizerStore.ts";
+import { CustomSelect } from "../ui/CustomSelect.tsx";
+import { CustomSlider } from "../ui/CustomSlider.tsx";
 import EqCurveGraph from "./EqCurveGraph.tsx";
 
 export default function SettingsView() {
@@ -51,8 +53,8 @@ export default function SettingsView() {
     };
 
     return (
-        <div className="flex flex-col flex-1 min-w-0 p-8 max-w-4xl gap-8">
-            <div className="flex items-center justify-between border-b border-white/10 pb-6">
+        <div className="flex flex-col flex-1 w-full min-w-0">
+            <div className="flex items-center justify-between border-b border-white/10 px-8 pt-8 pb-6">
                 <div>
                     <h1 className="text-4xl font-black text-white">Settings</h1>
                     <p className="text-sm text-neutral-400 mt-1">
@@ -72,7 +74,8 @@ export default function SettingsView() {
                 </button>
             </div>
 
-            <section className="flex flex-col gap-4">
+            <div className="w-full max-w-5xl mx-auto px-10 py-10 flex flex-col gap-8">
+                <section className="flex flex-col gap-4">
                 <div className="flex items-center justify-between">
                     <h2 className="text-lg font-bold text-white flex items-center gap-2">
                         <Sliders className="w-5 h-5 text-emerald-400" />
@@ -89,23 +92,20 @@ export default function SettingsView() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <select
-                        name="preset"
-                        aria-label="Equalizer preset"
+                    <CustomSelect
+                        ariaLabel="Equalizer preset"
                         value={activePresetId ?? ""}
-                        onChange={(e) => {
-                            const selected = presets.find((p) => p.id === e.target.value);
+                        placeholder="Custom"
+                        options={presets.map((preset) => ({
+                            value: preset.id,
+                            label: preset.name,
+                        }))}
+                        onChange={(presetId) => {
+                            const selected = presets.find((p) => p.id === presetId);
                             if (selected) applyPreset(selected);
                         }}
-                        className="matify-select min-w-56 px-4 py-2 rounded-xl bg-neutral-900 border border-white/10 text-sm text-white focus:outline-none focus:border-emerald-400 cursor-pointer"
-                    >
-                        <option value="" disabled>Custom</option>
-                        {presets.map((preset) => (
-                            <option key={preset.id} value={preset.id}>
-                                {preset.name}
-                            </option>
-                        ))}
-                    </select>
+                        className="min-w-64"
+                    />
                     {(() => {
                         const activePreset = presets.find((p) => p.id === activePresetId);
                         if (!activePreset || activePreset.isDefault) return null;
@@ -123,20 +123,23 @@ export default function SettingsView() {
                 </div>
             </section>
 
-            <section className={`flex flex-col gap-6 p-6 rounded-2xl bg-neutral-900/70 border border-white/10 transition-opacity ${enabled ? "opacity-100" : "opacity-50"}`}>
+            <section className={`flex flex-col gap-6 p-7 rounded-2xl bg-neutral-900/70 border border-white/10 transition-opacity ${enabled ? "opacity-100" : "opacity-60"}`}>
                 <div className="flex items-center justify-between gap-6">
-                    <span className="text-sm font-semibold text-neutral-300 w-24">Preamp</span>
-                    <input
-                        type="range"
+                    <span className="text-sm font-semibold text-neutral-300 w-20">Preamp</span>
+                    <CustomSlider
+                        ariaLabel="Preamp"
                         min={-12}
                         max={12}
                         step={0.5}
-                        disabled={!enabled}
                         value={preamp}
-                        onChange={(e) => setPreamp(Number(e.target.value))}
-                        className="flex-1 accent-emerald-400 cursor-pointer"
+                        active={enabled}
+                        onChange={(val) => {
+                            if (!enabled) setEnabled(true);
+                            setPreamp(val);
+                        }}
+                        className="flex-1"
                     />
-                    <span className="text-sm tabular-nums text-neutral-300 w-16 text-right">
+                    <span className="text-xs font-medium tabular-nums text-neutral-200 bg-neutral-950 border border-white/10 px-3 py-1.5 rounded-lg w-20 text-center">
                         {preamp > 0 ? `+${preamp.toFixed(1)}` : preamp.toFixed(1)} dB
                     </span>
                 </div>
@@ -144,7 +147,10 @@ export default function SettingsView() {
                     gains={gains}
                     enabled={enabled}
                     activePresetId={activePresetId}
-                    onChangeBand={setBandGain}
+                    onChangeBand={(band, db) => {
+                        if (!enabled) setEnabled(true);
+                        setBandGain(band, db);
+                    }}
                 />
 
             </section>
@@ -166,6 +172,7 @@ export default function SettingsView() {
                     Save Preset
                 </button>
             </form>
+            </div>
         </div>
     );
 }
